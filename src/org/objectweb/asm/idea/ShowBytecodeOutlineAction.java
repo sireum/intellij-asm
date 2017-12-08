@@ -18,10 +18,8 @@
 
 package org.objectweb.asm.idea;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.ide.util.JavaAnonymousClassesHelper;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
@@ -36,11 +34,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.util.ClassUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.objectweb.asm.idea.config.ASMPluginComponent;
 import reloc.org.objectweb.asm.ClassReader;
 import reloc.org.objectweb.asm.ClassVisitor;
@@ -89,8 +90,47 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 updateToolWindowContents(project, virtualFile);
             } else if (!virtualFile.isInLocalFileSystem() && !virtualFile.isWritable()) {
                 // probably a source file in a library
+                PsiElement el = psiFile.findElementAt(e.getData(CommonDataKeys.CARET).getOffset());
+                if (el != null) {
+                    while (el != null && !(el instanceof PsiClass)) {
+                        el = el.getParent();
+                    }
+                    if (el != null){
+                        PsiClass aClass = (PsiClass)el;
+                        String jvmClassName = getJVMClassName(aClass);
+                        if (jvmClassName != null) {
+                            String relativePath = jvmClassName.replace('.', '/') + ".class";
+                            ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(aClass.getProject());
+
+                            PsiElement originalClass = aClass.getOriginalElement();
+                            if (aClass instanceof PsiAnonymousClass){
+                                originalClass = PsiTreeUtil.getParentOfType(aClass, PsiClass.class).getOriginalElement();
+                            }
+                            if (originalClass instanceof PsiCompiledElement) {
+                                // compiled class; looking for a .class file inside a library
+                                VirtualFile file = originalClass.getContainingFile().getVirtualFile();
+                                if (file != null) {
+                                    VirtualFile classRoot = index.getClassRootForFile(file);
+                                    if (classRoot != null) {
+                                        VirtualFile classFile = classRoot.findFileByRelativePath(relativePath);
+                                        if (classFile != null) {
+                                            updateToolWindowContents(project, classFile);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //fallback
+                        final PsiClass[] psiClasses = ((PsiClassOwner) psiFile).getClasses();
+                        if (psiClasses.length > 0) {
+                            updateToolWindowContents(project, psiClasses[0].getOriginalElement().getContainingFile().getVirtualFile());
+                        }
+                    }
+                }
+                //fallback
                 final PsiClass[] psiClasses = ((PsiClassOwner) psiFile).getClasses();
-                if (psiClasses.length>0) {
+                if (psiClasses.length > 0) {
                     updateToolWindowContents(project, psiClasses[0].getOriginalElement().getContainingFile().getVirtualFile());
                 }
             } else {
@@ -252,5 +292,18 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
             }
         });
+    }
+
+    private static String getJVMClassName(PsiClass aClass) {
+        if (!(aClass instanceof PsiAnonymousClass)) {
+            return ClassUtil.getJVMClassName(aClass);
+        }
+
+        PsiClass containingClass = PsiTreeUtil.getParentOfType(aClass, PsiClass.class);
+        if (containingClass != null) {
+            return getJVMClassName(containingClass) + JavaAnonymousClassesHelper.getName((PsiAnonymousClass)aClass);
+        }
+
+        return null;
     }
 }
