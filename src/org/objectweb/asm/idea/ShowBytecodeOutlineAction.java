@@ -19,9 +19,11 @@
 package org.objectweb.asm.idea;
 
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
@@ -83,6 +85,8 @@ public class ShowBytecodeOutlineAction extends AnAction {
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
         if (psiFile instanceof PsiClassOwner) {
             final Module module = ModuleUtil.findModuleForPsiElement(psiFile);
+            if (module == null)
+                return;
             final CompilerModuleExtension cme = CompilerModuleExtension.getInstance(module);
             final CompilerManager compilerManager = CompilerManager.getInstance(project);
             final VirtualFile[] files = {virtualFile};
@@ -286,8 +290,8 @@ public class ShowBytecodeOutlineAction extends AnAction {
                         new CustomASMifier(),
                         new PrintWriter(stringWriter)), flags);
                 final BytecodeASMified asmified = BytecodeASMified.getInstance(project);
-                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", stringWriter.toString());
-                CodeStyleManager.getInstance(project).reformat(psiFile);
+                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", JavaLanguage.INSTANCE, stringWriter.toString());
+                CommandProcessor.getInstance().runUndoTransparentAction(()->CodeStyleManager.getInstance(project).reformat(psiFile));
                 asmified.setCode(file,psiFile.getText());
                 ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
             }
