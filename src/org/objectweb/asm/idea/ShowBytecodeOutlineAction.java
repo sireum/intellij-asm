@@ -283,7 +283,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 GroovifiedView.getInstance(project).setCode(file,stringWriter.toString());
                 stringWriter.getBuffer().setLength(0);
                 reader.accept(new TraceClassVisitor(null,
-                        new ASMifier(),
+                        new CustomASMifier(),
                         new PrintWriter(stringWriter)), flags);
                 final BytecodeASMified asmified = BytecodeASMified.getInstance(project);
                 PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", stringWriter.toString());
