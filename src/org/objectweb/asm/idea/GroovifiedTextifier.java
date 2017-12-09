@@ -265,7 +265,7 @@ public class GroovifiedTextifier extends Textifier {
                 buf.append('.');
                 buf.append(name);
                 buf.append(" >> ");
-                buf.append(groovyClassName(Type.getReturnType(desc).getClassName()));
+                buf.append(groovyClassName(Type.getObjectType(desc).getClassName()));
             }
             buf.append('\n');
             text.add(buf.toString());
