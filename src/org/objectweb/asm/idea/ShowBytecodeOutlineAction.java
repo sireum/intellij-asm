@@ -93,7 +93,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
             final CompilerManager compilerManager = CompilerManager.getInstance(project);
             final VirtualFile[] files = {virtualFile};
             if ("class".equals(virtualFile.getExtension())) {
-                updateToolWindowContents(project, virtualFile);
+                runAsmDecode(project, virtualFile);
             } else if (!virtualFile.isInLocalFileSystem() && !virtualFile.isWritable()) {
                 // probably a source file in a library
                 PsiElement el = psiFile.findElementAt(e.getData(CommonDataKeys.CARET).getOffset());
@@ -120,7 +120,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
                                     if (classRoot != null) {
                                         VirtualFile classFile = classRoot.findFileByRelativePath(relativePath);
                                         if (classFile != null) {
-                                            updateToolWindowContents(project, classFile);
+                                            runAsmDecode(project, classFile);
                                             return;
                                         }
                                     }
@@ -132,7 +132,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 //fallback
                 final PsiClass[] psiClasses = ((PsiClassOwner) psiFile).getClasses();
                 if (psiClasses.length > 0) {
-                    updateToolWindowContents(project, psiClasses[0].getOriginalElement().getContainingFile().getVirtualFile());
+                    runAsmDecode(project, psiClasses[0].getOriginalElement().getContainingFile().getVirtualFile());
                 }
             } else {
                 final Application application = ApplicationManager.getApplication();
@@ -175,24 +175,20 @@ public class ShowBytecodeOutlineAction extends AnAction {
                                     });
                                 }
                             });
-                            try {
-                                semaphore.acquire();
-                            } catch (InterruptedException e1) {
-                                result[0] = null;
-                            }
                         }
-                        application.invokeLater(new Runnable() {
-                            public void run() {
-                                updateToolWindowContents(project, result[0]);
-                            }
-                        });
+                        try {
+                            semaphore.acquire();
+                        } catch (InterruptedException e1) {
+                            result[0] = null;
+                        }
+                        runAsmDecode(project, result[0]);
                     }
                 });
             }
         }
     }
 
-    private VirtualFile findClassFile(final VirtualFile[] outputDirectories, final PsiFile psiFile) {
+    public VirtualFile findClassFile(final VirtualFile[] outputDirectories, final PsiFile psiFile) {
         return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
             public VirtualFile compute() {
                 if (outputDirectories != null && psiFile instanceof PsiClassOwner) {
@@ -243,57 +239,74 @@ public class ShowBytecodeOutlineAction extends AnAction {
     }
 
     /**
-     * Reads the .class file, processes it through the ASM TraceVisitor and ASMifier to update the contents of the two
-     * tabs of the tool window.
+     * Reads the .class file, processes it through the ASM TraceVisitor and ASMifier
+     */
+    public void runAsmDecode(final Project project, final VirtualFile file){
+        if (file == null){
+            ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(()->updateToolWindowContents(project, file,null, null, null)));
+            return;
+        }
+        ApplicationManager.getApplication().executeOnPooledThread(()-> {
+            StringWriter stringWriter = new StringWriter();
+            ClassVisitor visitor = new TraceClassVisitor(new PrintWriter(stringWriter));
+            ClassReader reader = null;
+            try {
+                file.refresh(false, false);
+                reader = new ClassReader(file.contentsToByteArray());
+            } catch (IOException e) {
+                return;
+            }
+            int flags = 0;
+            final ASMPluginComponent config = project.getComponent(ASMPluginComponent.class);
+            if (config.isSkipDebug()) flags = flags | ClassReader.SKIP_DEBUG;
+            if (config.isSkipFrames()) flags = flags | ClassReader.SKIP_FRAMES;
+            if (config.isExpandFrames()) flags = flags | ClassReader.EXPAND_FRAMES;
+            if (config.isSkipCode()) flags = flags | ClassReader.SKIP_CODE;
+
+            reader.accept(visitor, flags);
+            String byteCodeOutline = stringWriter.toString();
+
+            stringWriter.getBuffer().setLength(0);
+            reader.accept(new TraceClassVisitor(null, new GroovifiedTextifier(config.getCodeStyle()), new PrintWriter(stringWriter)), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+            String groovified = stringWriter.toString();
+
+            stringWriter.getBuffer().setLength(0);
+            reader.accept(new TraceClassVisitor(null,
+                    new CustomASMifier(),
+                    new PrintWriter(stringWriter)), flags);
+            ApplicationManager.getApplication().invokeLater(() ->
+                    ApplicationManager.getApplication().runWriteAction(()->{
+                        PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", StdFileTypes.JAVA, stringWriter.toString());
+                        CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
+
+                        updateToolWindowContents(project, file, byteCodeOutline, psiFile.getText(), groovified);
+                    })
+            );
+        });
+}
+
+    /**
+     * Update the contents of the two tabs of the tool window.
      *
      * @param project the project instance
      * @param file    the class file
      */
-    private void updateToolWindowContents(final Project project, final VirtualFile file) {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            public void run() {
-                if (file == null) {
-                    BytecodeOutline.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-                    BytecodeASMified.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-                    GroovifiedView.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-                    ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
-                    return;
-                }
-                StringWriter stringWriter = new StringWriter();
-                ClassVisitor visitor = new TraceClassVisitor(new PrintWriter(stringWriter));
-                ClassReader reader = null;
-                try {
-                    file.refresh(false, false);
-                    reader = new ClassReader(file.contentsToByteArray());
-                } catch (IOException e) {
-                    return;
-                }
-                int flags = 0;
-                final ASMPluginComponent config = project.getComponent(ASMPluginComponent.class);
-                if (config.isSkipDebug()) flags = flags | ClassReader.SKIP_DEBUG;
-                if (config.isSkipFrames()) flags = flags | ClassReader.SKIP_FRAMES;
-                if (config.isExpandFrames()) flags = flags | ClassReader.EXPAND_FRAMES;
-                if (config.isSkipCode()) flags = flags | ClassReader.SKIP_CODE;
+    private void updateToolWindowContents(final Project project, final VirtualFile file, String byteCodeOutline, String asmified, String groovified) {
+        if (file == null) {
+            BytecodeOutline.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
+            BytecodeASMified.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
+            GroovifiedView.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
+            ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
+            return;
+        }
 
-                reader.accept(visitor, flags);
-                BytecodeOutline.getInstance(project).setCode(file, stringWriter.toString());
-                stringWriter.getBuffer().setLength(0);
-                reader.accept(new TraceClassVisitor(null, new GroovifiedTextifier(config.getCodeStyle()), new PrintWriter(stringWriter)), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-                GroovifiedView.getInstance(project).setCode(file, stringWriter.toString());
-                stringWriter.getBuffer().setLength(0);
-                reader.accept(new TraceClassVisitor(null,
-                        new CustomASMifier(),
-                        new PrintWriter(stringWriter)), flags);
-                final BytecodeASMified asmified = BytecodeASMified.getInstance(project);
-                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", StdFileTypes.JAVA, stringWriter.toString());
-                asmified.setCode(file, psiFile.getText());
-                CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-                    CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
-                    asmified.setCode(file, psiFile.getText());
-                });
-                ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
-            }
-        });
+        BytecodeOutline.getInstance(project).setCode(file, byteCodeOutline);
+
+        GroovifiedView.getInstance(project).setCode(file, groovified);
+
+        BytecodeASMified.getInstance(project).setCode(file, asmified);
+
+        ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
     }
 
     private static String getJVMClassName(PsiClass aClass) {
