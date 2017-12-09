@@ -126,11 +126,6 @@ public class ShowBytecodeOutlineAction extends AnAction {
                                 }
                             }
                         }
-                        //fallback
-                        final PsiClass[] psiClasses = ((PsiClassOwner) psiFile).getClasses();
-                        if (psiClasses.length > 0) {
-                            updateToolWindowContents(project, psiClasses[0].getOriginalElement().getContainingFile().getVirtualFile());
-                        }
                     }
                 }
                 //fallback
