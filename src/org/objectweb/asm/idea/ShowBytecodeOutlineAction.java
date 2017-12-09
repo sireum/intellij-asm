@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -290,9 +291,12 @@ public class ShowBytecodeOutlineAction extends AnAction {
                         new CustomASMifier(),
                         new PrintWriter(stringWriter)), flags);
                 final BytecodeASMified asmified = BytecodeASMified.getInstance(project);
-                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", JavaLanguage.INSTANCE, stringWriter.toString());
-                CommandProcessor.getInstance().runUndoTransparentAction(()->CodeStyleManager.getInstance(project).reformat(psiFile));
+                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", StdFileTypes.JAVA, stringWriter.toString());
                 asmified.setCode(file,psiFile.getText());
+                CommandProcessor.getInstance().runUndoTransparentAction(()->{
+                    CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
+                    asmified.setCode(file,psiFile.getText());
+                });
                 ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
             }
         });
