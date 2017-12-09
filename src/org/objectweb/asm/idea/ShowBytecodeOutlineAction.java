@@ -51,6 +51,7 @@ import reloc.org.objectweb.asm.ClassVisitor;
 import reloc.org.objectweb.asm.util.ASMifier;
 import reloc.org.objectweb.asm.util.TraceClassVisitor;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -214,13 +215,11 @@ public class ShowBytecodeOutlineAction extends AnAction {
             return null;
           }
 
-          private VirtualFile getClassFile( PsiClass psiClass ) {
-            StringBuilder sb = new StringBuilder( psiClass.getQualifiedName() );
-            while( psiClass.getContainingClass() != null ) {
-              sb.setCharAt( sb.lastIndexOf( "." ), '$' );
-              psiClass = psiClass.getContainingClass();
-            }
-            String classFileName = sb.toString().replace( '.', '/' ) + ".class";
+          private VirtualFile getClassFile( @Nonnull PsiClass psiClass ) {
+              String jvmClassName = getJVMClassName(psiClass);
+              if (jvmClassName == null)
+                  jvmClassName="";
+            String classFileName = jvmClassName.replace( '.', '/' ) + ".class";
             for( VirtualFile outputDirectory : outputDirectories ) {
               final VirtualFile file = outputDirectory.findFileByRelativePath( classFileName );
               if( file != null && file.exists() ) {
