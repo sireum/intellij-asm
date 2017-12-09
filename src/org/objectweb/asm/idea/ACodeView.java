@@ -45,6 +45,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.ui.PopupHandler;
 import org.objectweb.asm.idea.config.ASMPluginComponent;
+import org.objectweb.asm.idea.config.ASMPluginConfigurable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -142,7 +143,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
 
         @Override
         public void actionPerformed(final AnActionEvent e) {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, project.getComponent(ASMPluginComponent.class));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, ASMPluginConfigurable.class);
         }
     }
     private class ShowDiffAction extends AnAction {
