@@ -75,6 +75,6 @@
 						serviceImplementation="org.objectweb.asm.idea.BytecodeASMified"/>
         <projectService serviceInterface="org.objectweb.asm.idea.GroovifiedView"
                         serviceImplementation="org.objectweb.asm.idea.GroovifiedView"/>
-		<projectConfigurable instance="org.objectweb.asm.idea.config.ASMPluginComponent" displayName="ASM Bytecode Outline" groupId="tools"/>
+		<projectConfigurable instance="org.objectweb.asm.idea.config.ASMPluginConfigurable" displayName="ASM Bytecode Outline" groupId="tools" id="asmbytecodeplugin"/>
 	</extensions>
 </idea-plugin>

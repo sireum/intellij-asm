@@ -47,7 +47,7 @@ import javax.swing.*;
                 @Storage(id = "other", file = "$PROJECT_FILE$")
         }
 )
-public class ASMPluginComponent implements ProjectComponent, Configurable, PersistentStateComponent<Element> {
+public class ASMPluginComponent implements ProjectComponent, PersistentStateComponent<Element> {
 
     private Project project;
     private boolean skipFrames = false;
@@ -55,8 +55,6 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
     private boolean skipCode = false;
     private boolean expandFrames = false;
     private GroovyCodeStyle codeStyle = GroovyCodeStyle.LEGACY;
-
-    private ASMPluginConfiguration configDialog;
 
     public ASMPluginComponent(final Project project) {
         this.project = project;
@@ -114,53 +112,6 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
 
     public void setCodeStyle(final GroovyCodeStyle codeStyle) {
         this.codeStyle = codeStyle;
-    }
-
-    // -------------- Configurable interface implementation --------------------------
-
-    @Override
-    @Nls
-    public String getDisplayName() {
-        return "ASM Bytecode plugin";
-    }
-
-    public Icon getIcon() {
-        return IconLoader.getIcon("/images/asm.gif");
-    }
-
-    @Override
-    public String getHelpTopic() {
-        return null;
-    }
-
-    @Override
-    public JComponent createComponent() {
-        if (configDialog==null) configDialog = new ASMPluginConfiguration();
-        return configDialog.getRootPane();
-    }
-
-    @Override
-    public boolean isModified() {
-        return configDialog!=null && configDialog.isModified(this);
-    }
-
-    @Override
-    public void apply() throws ConfigurationException {
-        if (configDialog!=null) {
-            configDialog.getData(this);
-        }
-    }
-
-    @Override
-    public void reset() {
-        if (configDialog!=null) {
-            configDialog.setData(this);
-        }
-    }
-
-    @Override
-    public void disposeUIResources() {
-        configDialog = null;
     }
 
     public boolean isExpandFrames() {
