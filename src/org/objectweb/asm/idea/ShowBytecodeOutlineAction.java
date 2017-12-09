@@ -101,15 +101,15 @@ public class ShowBytecodeOutlineAction extends AnAction {
                     while (el != null && !(el instanceof PsiClass)) {
                         el = el.getParent();
                     }
-                    if (el != null){
-                        PsiClass aClass = (PsiClass)el;
+                    if (el != null) {
+                        PsiClass aClass = (PsiClass) el;
                         String jvmClassName = getJVMClassName(aClass);
                         if (jvmClassName != null) {
                             String relativePath = jvmClassName.replace('.', '/') + ".class";
                             ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(aClass.getProject());
 
                             PsiElement originalClass = aClass.getOriginalElement();
-                            if (aClass instanceof PsiAnonymousClass){
+                            if (aClass instanceof PsiAnonymousClass) {
                                 originalClass = PsiTreeUtil.getParentOfType(aClass, PsiClass.class).getOriginalElement();
                             }
                             if (originalClass instanceof PsiCompiledElement) {
@@ -153,12 +153,12 @@ public class ShowBytecodeOutlineAction extends AnAction {
                             result[0] = null;
                         }
                         if (outputDirectories != null && compilerManager.isUpToDate(compileScope)) {
-                          application.invokeLater( new Runnable() {
-                            public void run() {
-                              result[0] = findClassFile( outputDirectories, psiFile );
-                              semaphore.release();
-                            }
-                          } );
+                            application.invokeLater(new Runnable() {
+                                public void run() {
+                                    result[0] = findClassFile(outputDirectories, psiFile);
+                                    semaphore.release();
+                                }
+                            });
                         } else {
                             application.invokeLater(new Runnable() {
                                 public void run() {
@@ -194,51 +194,51 @@ public class ShowBytecodeOutlineAction extends AnAction {
 
     private VirtualFile findClassFile(final VirtualFile[] outputDirectories, final PsiFile psiFile) {
         return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
-          public VirtualFile compute() {
-            if( outputDirectories != null && psiFile instanceof PsiClassOwner ) {
-              FileEditor editor = FileEditorManager.getInstance( psiFile.getProject() ).getSelectedEditor( psiFile.getVirtualFile() );
-              int caretOffset = editor == null ? -1 : ((PsiAwareTextEditorImpl)editor).getEditor().getCaretModel().getOffset();
-              if( caretOffset >= 0 ) {
-                PsiClass psiClass = findClassAtCaret( psiFile, caretOffset );
-                if( psiClass != null ) {
-                  return getClassFile( psiClass );
+            public VirtualFile compute() {
+                if (outputDirectories != null && psiFile instanceof PsiClassOwner) {
+                    FileEditor editor = FileEditorManager.getInstance(psiFile.getProject()).getSelectedEditor(psiFile.getVirtualFile());
+                    int caretOffset = editor == null ? -1 : ((PsiAwareTextEditorImpl) editor).getEditor().getCaretModel().getOffset();
+                    if (caretOffset >= 0) {
+                        PsiClass psiClass = findClassAtCaret(psiFile, caretOffset);
+                        if (psiClass != null) {
+                            return getClassFile(psiClass);
+                        }
+                    }
+                    PsiClassOwner psiJavaFile = (PsiClassOwner) psiFile;
+                    for (PsiClass psiClass : psiJavaFile.getClasses()) {
+                        final VirtualFile file = getClassFile(psiClass);
+                        if (file != null) {
+                            return file;
+                        }
+                    }
                 }
-              }
-              PsiClassOwner psiJavaFile = (PsiClassOwner)psiFile;
-              for( PsiClass psiClass : psiJavaFile.getClasses() ) {
-                final VirtualFile file = getClassFile( psiClass );
-                if( file != null ) {
-                  return file;
+                return null;
+            }
+
+            private VirtualFile getClassFile(@Nonnull PsiClass psiClass) {
+                String jvmClassName = getJVMClassName(psiClass);
+                if (jvmClassName == null)
+                    jvmClassName = "";
+                String classFileName = jvmClassName.replace('.', '/') + ".class";
+                for (VirtualFile outputDirectory : outputDirectories) {
+                    final VirtualFile file = outputDirectory.findFileByRelativePath(classFileName);
+                    if (file != null && file.exists()) {
+                        return file;
+                    }
                 }
-              }
+                return null;
             }
-            return null;
-          }
 
-          private VirtualFile getClassFile( @Nonnull PsiClass psiClass ) {
-              String jvmClassName = getJVMClassName(psiClass);
-              if (jvmClassName == null)
-                  jvmClassName="";
-            String classFileName = jvmClassName.replace( '.', '/' ) + ".class";
-            for( VirtualFile outputDirectory : outputDirectories ) {
-              final VirtualFile file = outputDirectory.findFileByRelativePath( classFileName );
-              if( file != null && file.exists() ) {
-                return file;
-              }
+            private PsiClass findClassAtCaret(PsiFile psiFile, int caretOffset) {
+                PsiElement elem = psiFile.findElementAt(caretOffset);
+                while (elem != null) {
+                    if (elem instanceof PsiClass) {
+                        return (PsiClass) elem;
+                    }
+                    elem = elem.getParent();
+                }
+                return null;
             }
-            return null;
-          }
-
-          private PsiClass findClassAtCaret( PsiFile psiFile, int caretOffset ) {
-            PsiElement elem = psiFile.findElementAt( caretOffset );
-            while( elem != null ) {
-              if( elem instanceof PsiClass ) {
-                return (PsiClass)elem;
-              }
-              elem = elem.getParent();
-            }
-            return null;
-          }
         });
     }
 
@@ -252,7 +252,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
     private void updateToolWindowContents(final Project project, final VirtualFile file) {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
             public void run() {
-                if (file==null) {
+                if (file == null) {
                     BytecodeOutline.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
                     BytecodeASMified.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
                     GroovifiedView.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
@@ -278,18 +278,18 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 reader.accept(visitor, flags);
                 BytecodeOutline.getInstance(project).setCode(file, stringWriter.toString());
                 stringWriter.getBuffer().setLength(0);
-                reader.accept(new TraceClassVisitor(null, new GroovifiedTextifier(config.getCodeStyle()), new PrintWriter(stringWriter)), ClassReader.SKIP_FRAMES|ClassReader.SKIP_DEBUG);
-                GroovifiedView.getInstance(project).setCode(file,stringWriter.toString());
+                reader.accept(new TraceClassVisitor(null, new GroovifiedTextifier(config.getCodeStyle()), new PrintWriter(stringWriter)), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+                GroovifiedView.getInstance(project).setCode(file, stringWriter.toString());
                 stringWriter.getBuffer().setLength(0);
                 reader.accept(new TraceClassVisitor(null,
                         new CustomASMifier(),
                         new PrintWriter(stringWriter)), flags);
                 final BytecodeASMified asmified = BytecodeASMified.getInstance(project);
                 PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", StdFileTypes.JAVA, stringWriter.toString());
-                asmified.setCode(file,psiFile.getText());
-                CommandProcessor.getInstance().runUndoTransparentAction(()->{
+                asmified.setCode(file, psiFile.getText());
+                CommandProcessor.getInstance().runUndoTransparentAction(() -> {
                     CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
-                    asmified.setCode(file,psiFile.getText());
+                    asmified.setCode(file, psiFile.getText());
                 });
                 ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
             }
@@ -303,7 +303,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
 
         PsiClass containingClass = PsiTreeUtil.getParentOfType(aClass, PsiClass.class);
         if (containingClass != null) {
-            return getJVMClassName(containingClass) + JavaAnonymousClassesHelper.getName((PsiAnonymousClass)aClass);
+            return getJVMClassName(containingClass) + JavaAnonymousClassesHelper.getName((PsiAnonymousClass) aClass);
         }
 
         return null;
