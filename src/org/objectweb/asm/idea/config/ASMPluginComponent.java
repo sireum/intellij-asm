@@ -62,20 +62,25 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
         this.project = project;
     }
 
+    @Override
     public void projectOpened() {
     }
 
+    @Override
     public void projectClosed() {
     }
 
+    @Override
     @NotNull
     public String getComponentName() {
         return "ASM Plugin";
     }
 
+    @Override
     public void initComponent() {
     }
 
+    @Override
     public void disposeComponent() {
     }
 
@@ -113,6 +118,7 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
 
     // -------------- Configurable interface implementation --------------------------
 
+    @Override
     @Nls
     public String getDisplayName() {
         return "ASM Bytecode plugin";
@@ -122,31 +128,37 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
         return IconLoader.getIcon("/images/asm.gif");
     }
 
+    @Override
     public String getHelpTopic() {
         return null;
     }
 
+    @Override
     public JComponent createComponent() {
         if (configDialog==null) configDialog = new ASMPluginConfiguration();
         return configDialog.getRootPane();
     }
 
+    @Override
     public boolean isModified() {
         return configDialog!=null && configDialog.isModified(this);
     }
 
+    @Override
     public void apply() throws ConfigurationException {
         if (configDialog!=null) {
             configDialog.getData(this);
         }
     }
 
+    @Override
     public void reset() {
         if (configDialog!=null) {
             configDialog.setData(this);
         }
     }
 
+    @Override
     public void disposeUIResources() {
         configDialog = null;
     }
@@ -161,6 +173,7 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
 
     // -------------------- state persistence
 
+    @Override
     public Element getState() {
         Element root = new Element("state");
         Element asmNode = new Element("asm");
@@ -175,6 +188,7 @@ public class ASMPluginComponent implements ProjectComponent, Configurable, Persi
         return root;
     }
 
+    @Override
     public void loadState(final Element state) {
         Element asmNode = state.getChild("asm");
         if (asmNode!=null) {
