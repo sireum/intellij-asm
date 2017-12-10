@@ -40,6 +40,9 @@ import javax.swing.*;
 
 /**
  * A component created just to be able to configure the plugin.
+ *
+ * @author Cédric Champeau
+ * @author Thiakil (December 2017)
  */
 @State(
         name = ASMPluginConfiguration.COMPONENT_NAME,

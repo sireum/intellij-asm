@@ -45,7 +45,7 @@ import java.util.Map;
  * Customised to prefix opcodes with Opcodes. to allow use in files where static import is not used for the constants
  * 
  * @author Eric Bruneton
- * @author Thiakil (modified from OW file)
+ * @author Thiakil (modified from OW file December 2017)
  */
 public class CustomASMifier extends Printer {
 

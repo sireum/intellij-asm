@@ -40,6 +40,9 @@ import java.util.List;
 /**
  * A customized trace visitor which outputs code compatible with the Groovy @groovyx.ast.bytecode.Bytecode AST
  * transform.
+ *
+ * @author Cédric Champeau
+ * @author Thiakil (December 2017)
  */
 public class GroovifiedTextifier extends Textifier {
 

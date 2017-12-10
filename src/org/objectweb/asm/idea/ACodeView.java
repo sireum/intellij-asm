@@ -56,6 +56,9 @@ import java.awt.event.MouseEvent;
 
 /**
  * Base class for editors which displays bytecode or ASMified code.
+ *
+ * @author Cédric Champeau
+ * @author Thiakil (December 2017)
  */
 public class ACodeView extends SimpleToolWindowPanel implements Disposable {
     private static final String DIFF_WINDOW_TITLE = "Show differences from previous class contents";

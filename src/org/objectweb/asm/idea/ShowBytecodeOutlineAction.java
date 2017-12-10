@@ -67,6 +67,7 @@ import java.util.concurrent.Semaphore;
  * instructions for the class and ASMified code, and displays them into a tool window.
  *
  * @author Cédric Champeau
+ * @author Thiakil (December 2017)
  */
 public class ShowBytecodeOutlineAction extends AnAction {
 

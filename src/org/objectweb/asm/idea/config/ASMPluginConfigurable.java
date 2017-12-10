@@ -9,7 +9,8 @@ import org.jetbrains.annotations.Nls;
 import javax.swing.*;
 
 /**
- * Created by Thiakil on 9/12/2017.
+ * @author Cédric Champeau (pre refactor)
+ * @author Thiakil (December 2017)
  */
 public class ASMPluginConfigurable implements Configurable {
 
