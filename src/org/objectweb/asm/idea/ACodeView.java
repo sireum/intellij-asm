@@ -108,7 +108,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
 
     public void setCode(final VirtualFile file, final String code) {
         final String text = document.getText();
-        if (previousFile == null || file == null || previousFile.getPath().equals(file.getPath()) && !Constants.NO_CLASS_FOUND.equals(text)) {
+        if (previousFile == null || file == null || previousFile.getPath().equals(file.getPath()) && !text.isEmpty()) {
             if (file != null) previousCode = text;
         } else if (!previousFile.getPath().equals(file.getPath())) {
             previousCode = ""; // reset previous code

@@ -19,11 +19,9 @@
 package org.objectweb.asm.idea;
 
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
@@ -38,17 +36,22 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.ui.LightColors;
+import com.intellij.ui.awt.RelativePoint;
 import org.objectweb.asm.idea.config.ASMPluginComponent;
 import reloc.org.objectweb.asm.ClassReader;
 import reloc.org.objectweb.asm.ClassVisitor;
-import reloc.org.objectweb.asm.util.ASMifier;
 import reloc.org.objectweb.asm.util.TraceClassVisitor;
 
 import javax.annotation.Nonnull;
@@ -293,10 +296,19 @@ public class ShowBytecodeOutlineAction extends AnAction {
      */
     private void updateToolWindowContents(final Project project, final VirtualFile file, String byteCodeOutline, String asmified, String groovified) {
         if (file == null) {
-            BytecodeOutline.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-            BytecodeASMified.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-            GroovifiedView.getInstance(project).setCode(file, Constants.NO_CLASS_FOUND);
-            ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
+            BytecodeOutline.getInstance(project).setCode(file, "");
+            BytecodeASMified.getInstance(project).setCode(file, "");
+            GroovifiedView.getInstance(project).setCode(file, "");
+            ApplicationManager.getApplication().invokeLater(() -> {
+                Balloon balloon = JBPopupFactory.getInstance()
+                        .createHtmlTextBalloonBuilder(Constants.NO_CLASS_FOUND, null, LightColors.RED, null)
+                        .setHideOnAction(true)
+                        .setHideOnClickOutside(true)
+                        .setHideOnKeyOutside(true)
+                        .createBalloon();
+                StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
+                balloon.show(RelativePoint.getCenterOf(statusBar.getComponent()), Balloon.Position.above);
+            });
             return;
         }
 
