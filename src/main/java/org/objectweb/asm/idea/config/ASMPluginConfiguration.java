@@ -34,7 +34,7 @@ public class ASMPluginConfiguration {
     private JCheckBox skipFramesCheckBox;
     private JCheckBox skipCodeCheckBox;
     private JCheckBox expandFramesCheckBox;
-    private JComboBox groovyCodeStyleComboBox;
+    private JComboBox<GroovyCodeStyle> groovyCodeStyleComboBox;
 
     public ASMPluginConfiguration() {
     }
@@ -69,12 +69,12 @@ public class ASMPluginConfiguration {
     }
 
     private void createUIComponents() {
-        ComboBoxModel model = new EnumComboBoxModel<GroovyCodeStyle>(GroovyCodeStyle.class);
-        groovyCodeStyleComboBox = new ComboBox(model);
+        ComboBoxModel<GroovyCodeStyle> model = new EnumComboBoxModel<>(GroovyCodeStyle.class);
+        groovyCodeStyleComboBox = new ComboBox<>(model);
         groovyCodeStyleComboBox.setRenderer(new GroovyCodeStyleCellRenderer());
     }
 
-    private static class GroovyCodeStyleCellRenderer implements ListCellRenderer {
+    private static class GroovyCodeStyleCellRenderer implements ListCellRenderer<GroovyCodeStyle> {
         private EnumMap<GroovyCodeStyle, JLabel> labels;
 
         private GroovyCodeStyleCellRenderer() {
@@ -84,7 +84,8 @@ public class ASMPluginConfiguration {
             }
         }
 
-        public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+        @Override
+        public Component getListCellRendererComponent(final JList<? extends GroovyCodeStyle> list, final GroovyCodeStyle value, final int index, final boolean isSelected, final boolean cellHasFocus) {
             return labels.get(value);
         }
     }
