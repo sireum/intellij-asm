@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.intellij' version '1.2.1'
+    id "com.github.johnrengelman.shadow" version "7.1.0"
     id 'java'
 }
 
@@ -23,12 +24,27 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
     priority "org.ow2.asm:asm:$asm_version"
+    priority "org.ow2.asm:asm-commons:$asm_version"
     priority "org.ow2.asm:asm-util:$asm_version"
 
     //duplicated here so that IJ plugin puts them in the zip distribution
-    runtimeOnly "org.ow2.asm:asm:$asm_version"
-    runtimeOnly "org.ow2.asm:asm-util:$asm_version"
+    //runtimeOnly "org.ow2.asm:asm:$asm_version"
+    //runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 }
+
+shadowJar {
+    configurations = [project.configurations.priority]
+    relocate ('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
+        exclude 'org.objectweb.asm.idea.**'
+    }
+    archiveClassifier.set('')
+}
+
+jar {
+    finalizedBy(tasks.shadowJar)
+}
+
+prepareSandbox.dependsOn(shadowJar)
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
