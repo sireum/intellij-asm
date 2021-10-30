@@ -10,6 +10,7 @@ repositories {
     mavenCentral()
 }
 
+//setup a config so gradle prioritises our version of ASM
 configurations {
     priority
     sourceSets.main.compileClasspath = configurations.priority + sourceSets.main.compileClasspath
@@ -22,6 +23,10 @@ dependencies {
 
     priority "org.ow2.asm:asm:$asm_version"
     priority "org.ow2.asm:asm-util:$asm_version"
+
+    //duplicated here so that IJ plugin puts them in the zip distribution
+    runtimeOnly "org.ow2.asm:asm:$asm_version"
+    runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
