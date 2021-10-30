@@ -18,6 +18,7 @@
 
 package org.objectweb.asm.idea;
 
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -280,7 +281,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
                     new PrintWriter(stringWriter)), flags);
             ApplicationManager.getApplication().invokeLater(() ->
                     ApplicationManager.getApplication().runWriteAction(()->{
-                        PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", StdFileTypes.JAVA, stringWriter.toString());
+                        PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", JavaFileType.INSTANCE, stringWriter.toString());
                         CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
 
                         updateToolWindowContents(project, file, byteCodeOutline, psiFile.getText(), groovified);
