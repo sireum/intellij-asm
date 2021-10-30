@@ -50,9 +50,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.LightColors;
 import com.intellij.ui.awt.RelativePoint;
 import org.objectweb.asm.idea.config.ASMPluginComponent;
-import reloc.org.objectweb.asm.ClassReader;
-import reloc.org.objectweb.asm.ClassVisitor;
-import reloc.org.objectweb.asm.util.TraceClassVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

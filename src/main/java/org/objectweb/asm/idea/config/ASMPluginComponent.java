@@ -47,7 +47,7 @@ import javax.swing.*;
 @State(
         name = ASMPluginConfiguration.COMPONENT_NAME,
         storages = {
-                @Storage(id = "other", file = "$PROJECT_FILE$")
+                @Storage("$PROJECT_FILE$")
         }
 )
 public class ASMPluginComponent implements ProjectComponent, PersistentStateComponent<Element> {

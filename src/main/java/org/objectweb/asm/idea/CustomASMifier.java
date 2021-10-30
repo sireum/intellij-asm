@@ -29,10 +29,10 @@
  */
 package org.objectweb.asm.idea;
 
-import reloc.org.objectweb.asm.*;
-import reloc.org.objectweb.asm.util.ASMifiable;
-import reloc.org.objectweb.asm.util.Printer;
-import reloc.org.objectweb.asm.util.TraceClassVisitor;
+import org.objectweb.asm.*;
+import org.objectweb.asm.util.ASMifiable;
+import org.objectweb.asm.util.Printer;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.FileInputStream;
 import java.io.PrintWriter;

@@ -25,13 +25,13 @@ package org.objectweb.asm.idea;
  */
 
 import org.objectweb.asm.*;
-import reloc.org.objectweb.asm.*;
-import reloc.org.objectweb.asm.Label;
-import reloc.org.objectweb.asm.Opcodes;
-import reloc.org.objectweb.asm.Type;
-import reloc.org.objectweb.asm.commons.Method;
+import org.objectweb.asm.*;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.idea.config.GroovyCodeStyle;
-import reloc.org.objectweb.asm.util.*;
+import org.objectweb.asm.util.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -342,7 +342,7 @@ public class GroovifiedTextifier extends Textifier {
          */
         protected void appendLabel(final Label l) {
             if (labelNames == null) {
-                labelNames = new HashMap<reloc.org.objectweb.asm.Label, String>();
+                labelNames = new HashMap<org.objectweb.asm.Label, String>();
             }
             String name = (String) labelNames.get(l);
             if (name == null) {
