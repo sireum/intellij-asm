@@ -39,11 +39,11 @@ import java.awt.*;
  */
 public class BytecodeASMified extends ACodeView {
 
-	public BytecodeASMified(final ToolWindowManager toolWindowManager, KeymapManager keymapManager, final Project project) {
-		super(toolWindowManager, keymapManager, project);
+	public BytecodeASMified(final Project project) {
+		super(project);
 	}
 
 	public static BytecodeASMified getInstance(Project project) {
-		return ServiceManager.getService(project, BytecodeASMified.class);
+		return project.getService(BytecodeASMified.class);
 	}
 }

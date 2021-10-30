@@ -261,7 +261,7 @@ public class ShowBytecodeOutlineAction extends AnAction {
                 return;
             }
             int flags = 0;
-            final ASMPluginComponent config = project.getComponent(ASMPluginComponent.class);
+            final ASMPluginComponent config = project.getService(ASMPluginComponent.class);
             if (config.isSkipDebug()) flags = flags | ClassReader.SKIP_DEBUG;
             if (config.isSkipFrames()) flags = flags | ClassReader.SKIP_FRAMES;
             if (config.isExpandFrames()) flags = flags | ClassReader.EXPAND_FRAMES;

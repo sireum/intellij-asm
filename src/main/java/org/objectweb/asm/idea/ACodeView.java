@@ -25,7 +25,11 @@ package org.objectweb.asm.idea;
  */
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diff.DiffContent;
 import com.intellij.openapi.diff.DiffManager;
 import com.intellij.openapi.diff.DiffRequest;
@@ -35,7 +39,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -45,14 +48,10 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.ui.PopupHandler;
-import org.objectweb.asm.idea.config.ASMPluginComponent;
 import org.objectweb.asm.idea.config.ASMPluginConfigurable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 /**
  * Base class for editors which displays bytecode or ASMified code.
@@ -64,9 +63,6 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
     private static final String DIFF_WINDOW_TITLE = "Show differences from previous class contents";
     private static final String[] DIFF_TITLES = {"Previous version", "Current version"};
     protected final Project project;
-
-    protected final ToolWindowManager toolWindowManager;
-    protected final KeymapManager keymapManager;
     private final String extension;
 
 
@@ -76,17 +72,15 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
     private String previousCode;
     private VirtualFile previousFile;
 
-    public ACodeView(final ToolWindowManager toolWindowManager, KeymapManager keymapManager, final Project project, final String fileExtension) {
+    public ACodeView(final Project project, final String fileExtension) {
         super(true, true);
-        this.toolWindowManager = toolWindowManager;
-        this.keymapManager = keymapManager;
         this.project = project;
         this.extension = fileExtension;
         setupUI();
     }
 
-    public ACodeView(final ToolWindowManager toolWindowManager, KeymapManager keymapManager, final Project project) {
-        this(toolWindowManager, keymapManager, project, "java");
+    public ACodeView(final Project project) {
+        this(project, "java");
     }
 
     private void setupUI() {
@@ -105,7 +99,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
         final ActionToolbar actionToolBar = actionManager.createActionToolbar("ASM", group, true);
         final JPanel buttonsPanel = new JPanel(new BorderLayout());
         buttonsPanel.add(actionToolBar.getComponent(), BorderLayout.CENTER);
-        PopupHandler.installPopupHandler(editor.getContentComponent(), group, "ASM", actionManager);
+        PopupHandler.installPopupMenu(editor.getContentComponent(), group, "ASM");
         setToolbar(buttonsPanel);
     }
 
@@ -138,7 +132,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
     private class ShowSettingsAction extends AnAction {
 
         private ShowSettingsAction() {
-            super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png"));
+            super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png", ShowSettingsAction.class));
         }
 
         @Override
@@ -156,7 +150,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable {
         public ShowDiffAction() {
             super("Show differences",
                     "Shows differences from the previous version of bytecode for this file",
-                    IconLoader.getIcon("/actions/diffWithCurrent.png"));
+                    IconLoader.getIcon("/actions/diffWithCurrent.png", ShowDiffAction.class));
         }
 
         @Override

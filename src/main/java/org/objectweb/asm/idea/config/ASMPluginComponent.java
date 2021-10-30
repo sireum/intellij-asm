@@ -28,6 +28,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -47,12 +48,11 @@ import javax.swing.*;
 @State(
         name = ASMPluginConfiguration.COMPONENT_NAME,
         storages = {
-                @Storage("$PROJECT_FILE$")
+                @Storage(StoragePathMacros.WORKSPACE_FILE)
         }
 )
-public class ASMPluginComponent implements ProjectComponent, PersistentStateComponent<Element> {
+public class ASMPluginComponent implements PersistentStateComponent<Element> {
 
-    private Project project;
     private boolean skipFrames = false;
     private boolean skipDebug = false;
     private boolean skipCode = false;
@@ -60,29 +60,6 @@ public class ASMPluginComponent implements ProjectComponent, PersistentStateComp
     private GroovyCodeStyle codeStyle = GroovyCodeStyle.LEGACY;
 
     public ASMPluginComponent(final Project project) {
-        this.project = project;
-    }
-
-    @Override
-    public void projectOpened() {
-    }
-
-    @Override
-    public void projectClosed() {
-    }
-
-    @Override
-    @NotNull
-    public String getComponentName() {
-        return "ASM Plugin";
-    }
-
-    @Override
-    public void initComponent() {
-    }
-
-    @Override
-    public void disposeComponent() {
     }
 
     public boolean isSkipCode() {
@@ -147,13 +124,13 @@ public class ASMPluginComponent implements ProjectComponent, PersistentStateComp
         Element asmNode = state.getChild("asm");
         if (asmNode!=null) {
             final String skipDebugStr = asmNode.getAttributeValue("skipDebug");
-            if (skipDebugStr!=null) skipDebug= Boolean.valueOf(skipDebugStr);
+            if (skipDebugStr!=null) skipDebug= Boolean.parseBoolean(skipDebugStr);
             final String skipFramesStr = asmNode.getAttributeValue("skipFrames");
-            if (skipFramesStr!=null) skipFrames= Boolean.valueOf(skipFramesStr);
+            if (skipFramesStr!=null) skipFrames= Boolean.parseBoolean(skipFramesStr);
             final String skipCodeStr = asmNode.getAttributeValue("skipCode");
-            if (skipCodeStr!=null) skipCode = Boolean.valueOf(skipCodeStr);
+            if (skipCodeStr!=null) skipCode = Boolean.parseBoolean(skipCodeStr);
             final String expandFramesStr = asmNode.getAttributeValue("expandFrames");
-            if (expandFramesStr!=null) expandFrames = Boolean.valueOf(expandFramesStr);
+            if (expandFramesStr!=null) expandFrames = Boolean.parseBoolean(expandFramesStr);
         }
         Element groovyNode = state.getChild("groovy");
         if (groovyNode!=null) {

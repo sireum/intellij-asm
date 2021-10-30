@@ -44,11 +44,11 @@ import java.awt.*;
  */
 public class BytecodeOutline extends ACodeView {
 
-	public BytecodeOutline(final Project project, KeymapManager keymapManager, final ToolWindowManager toolWindowManager) {
-		super(toolWindowManager, keymapManager, project);
+	public BytecodeOutline(final Project project) {
+		super(project);
 	}
 
 	public static BytecodeOutline getInstance(Project project) {
-		return ServiceManager.getService(project, BytecodeOutline.class);
+		return project.getService(BytecodeOutline.class);
 	}
 }

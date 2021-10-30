@@ -3,7 +3,6 @@
 	<description>Displays bytecode for Java classes and ASMified code which will help you in your class generation. Updated for newer IDEA versions.</description>
 	<version>0.3.5.2017.12.10</version>
 	<vendor>Thiakil</vendor>
-	<idea-version since-build="173.0"/>
 
     <change-notes><![CDATA[
         <b>Version 0.3.5.2017.12.10 (10 December 2017)</b>
@@ -62,11 +61,11 @@
 
 	</application-components>
 
-	<project-components>
+	<!--<project-components>
         <component>
             <implementation-class>org.objectweb.asm.idea.config.ASMPluginComponent</implementation-class>
         </component>
-    </project-components>
+    </project-components>-->
 
 	<actions>
 		<action id="showBytecodeOutline" class="org.objectweb.asm.idea.ShowBytecodeOutlineAction"
@@ -81,12 +80,10 @@
 	<extensions defaultExtensionNs="com.intellij">
 		<toolWindow id="ASM" anchor="right" icon="/images/asm.gif"
 					factoryClass="org.objectweb.asm.idea.BytecodeOutlineToolWindowFactory"/>
-		<projectService serviceInterface="org.objectweb.asm.idea.BytecodeOutline"
-						serviceImplementation="org.objectweb.asm.idea.BytecodeOutline"/>
-		<projectService serviceInterface="org.objectweb.asm.idea.BytecodeASMified"
-						serviceImplementation="org.objectweb.asm.idea.BytecodeASMified"/>
-        <projectService serviceInterface="org.objectweb.asm.idea.GroovifiedView"
-                        serviceImplementation="org.objectweb.asm.idea.GroovifiedView"/>
+		<projectService serviceImplementation="org.objectweb.asm.idea.config.ASMPluginComponent" />
+		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeOutline"/>
+		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeASMified"/>
+        <projectService serviceImplementation="org.objectweb.asm.idea.GroovifiedView"/>
 		<projectConfigurable instance="org.objectweb.asm.idea.config.ASMPluginConfigurable" displayName="ASM Bytecode Outline" groupId="tools" id="asmbytecodeplugin"/>
 	</extensions>
 </idea-plugin>

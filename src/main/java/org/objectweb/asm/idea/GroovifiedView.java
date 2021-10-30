@@ -36,11 +36,11 @@ import com.intellij.openapi.wm.ToolWindowManager;
  */
 public class GroovifiedView extends ACodeView {
 
-	public GroovifiedView(final Project project, KeymapManager keymapManager, final ToolWindowManager toolWindowManager) {
-		super(toolWindowManager, keymapManager, project, "groovy");
+	public GroovifiedView(final Project project) {
+		super(project, "groovy");
 	}
 
 	public static GroovifiedView getInstance(Project project) {
-		return ServiceManager.getService(project, GroovifiedView.class);
+		return project.getService(GroovifiedView.class);
 	}
 }

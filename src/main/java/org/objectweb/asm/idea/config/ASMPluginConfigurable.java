@@ -20,7 +20,7 @@ public class ASMPluginConfigurable implements Configurable {
 
     public ASMPluginConfigurable(final Project project) {
         this.project = project;
-        projectComponent = project.getComponent(ASMPluginComponent.class);
+        projectComponent = project.getService(ASMPluginComponent.class);
     }
 
     @Override
