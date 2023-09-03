@@ -180,7 +180,7 @@ public class GroovifiedTextifier extends Textifier{
 		private static final Textifier       EMPTY_TEXTIFIER = new Textifier(Opcodes.ASM5){
 			@Override
 			public List<Object> getText(){
-				return Collections.emptyList();
+				return List.of();
 			}
 		};
 		
@@ -249,11 +249,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitFieldInsn(
-			final int opcode,
-			final String owner,
-			final String name,
-			final String desc){
+		public void visitFieldInsn(int opcode, String owner, String name, String desc){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append(OPCODES[opcode].toLowerCase()).append(' ');
 			if(isLegacy()){
@@ -274,11 +270,7 @@ public class GroovifiedTextifier extends Textifier{
 			
 		}
 		
-		public void visitMethodInsn(
-			final int opcode,
-			final String owner,
-			final String name,
-			final String desc){
+		public void visitMethodInsn(int opcode, String owner, String name, String desc){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append(OPCODES[opcode].toLowerCase()).append(' ');
 			if(isLegacy()){
@@ -307,7 +299,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitJumpInsn(final int opcode, final Label label){
+		public void visitJumpInsn( int opcode,  Label label){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append(
 				OPCODES[opcode].equals("GOTO")?
@@ -319,12 +311,12 @@ public class GroovifiedTextifier extends Textifier{
 		}
 		
 		@Override
-		public Textifier visitParameterAnnotation(final int parameter, final String desc, final boolean visible){
+		public Textifier visitParameterAnnotation( int parameter,  String desc,  boolean visible){
 			return EMPTY_TEXTIFIER;
 		}
 		
 		@Override
-		public Textifier visitAnnotation(final String desc, final boolean visible){
+		public Textifier visitAnnotation( String desc,  boolean visible){
 			return EMPTY_TEXTIFIER;
 		}
 		
@@ -339,14 +331,14 @@ public class GroovifiedTextifier extends Textifier{
 		 *
 		 * @param l a label.
 		 */
-		protected void appendLabel(final Label l){
+		protected void appendLabel(Label l){
 			if(labelNames == null){
 				labelNames = new HashMap<>();
 			}
 			stringBuilder.append(labelNames.computeIfAbsent(l, k -> "l" + labelNames.size()));
 		}
 		
-		public void visitLabel(final Label label){
+		public void visitLabel(Label label){
 			stringBuilder.setLength(0);
 			stringBuilder.append(ltab);
 			appendLabel(label);
@@ -355,7 +347,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitLdcInsn(final Object cst){
+		public void visitLdcInsn(Object cst){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append("ldc ");
 			if(cst instanceof String){
@@ -376,7 +368,7 @@ public class GroovifiedTextifier extends Textifier{
 			
 		}
 		
-		public void visitIincInsn(final int var, final int increment){
+		public void visitIincInsn(int var, int increment){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2)
 			             .append("iinc ")
@@ -387,11 +379,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitTableSwitchInsn(
-			final int min,
-			final int max,
-			final Label dflt,
-			final Label[] labels){
+		public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append("tableswitch(\n");
 			for(int i = 0; i<labels.length; ++i){
@@ -405,10 +393,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitLookupSwitchInsn(
-			final Label dflt,
-			final int[] keys,
-			final Label[] labels){
+		public void visitLookupSwitchInsn(Label dflt, int[] keys,  Label[] labels){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append("lookupswitch(\n");
 			for(int i = 0; i<labels.length; ++i){
@@ -422,7 +407,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitMultiANewArrayInsn(final String desc, final int dims){
+		public void visitMultiANewArrayInsn(String desc, int dims){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append("multianewarray ");
 			if(isLegacy()){
@@ -436,11 +421,7 @@ public class GroovifiedTextifier extends Textifier{
 			text.add(stringBuilder.toString());
 		}
 		
-		public void visitTryCatchBlock(
-			final Label start,
-			final Label end,
-			final Label handler,
-			final String type){
+		public void visitTryCatchBlock(Label start, Label end, Label handler, String type){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append("trycatchblock ");
 			appendLabel(start);
@@ -466,14 +447,9 @@ public class GroovifiedTextifier extends Textifier{
 		}
 		
 		@Override
-		public void visitLocalVariable(final String name, final String desc, final String signature, final Label start, final Label end, final int index){
-		}
+		public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index){ }
 		
 		@Override
-		public void visitMaxs(final int maxStack, final int maxLocals){
-		}
-		
+		public void visitMaxs(int maxStack, int maxLocals){ }
 	}
-	
-	
 }
