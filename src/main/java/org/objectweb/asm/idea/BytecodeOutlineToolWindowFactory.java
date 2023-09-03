@@ -28,12 +28,12 @@ import org.jetbrains.annotations.NotNull;
  * ASM ToolWindow factory
  */
 public class BytecodeOutlineToolWindowFactory implements ToolWindowFactory{
-	public void createToolWindowContent(final @NotNull Project project, final ToolWindow toolWindow){
+	public void createToolWindowContent(final @NotNull Project project, final @NotNull ToolWindow toolWindow){
 		BytecodeOutline  outline    = BytecodeOutline.getInstance(project);
 		BytecodeASMified asmified   = BytecodeASMified.getInstance(project);
 		GroovifiedView   groovified = GroovifiedView.getInstance(project);
-		toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(outline, "Bytecode", false));
-		toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(asmified, "ASMified", false));
-		toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(groovified, "Groovified", false));
+		toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(outline, "Bytecode", false));
+		toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(asmified, "ASMified", false));
+		toolWindow.getContentManager().addContent(ContentFactory.getInstance().createContent(groovified, "Groovified", false));
 	}
 }

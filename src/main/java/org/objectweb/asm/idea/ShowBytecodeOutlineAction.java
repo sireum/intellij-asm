@@ -60,12 +60,12 @@ import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.LightColors;
 import com.intellij.ui.awt.RelativePoint;
+import groovyjarjarantlr4.v4.runtime.misc.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.idea.config.ASMPluginComponent;
 import org.objectweb.asm.util.TraceClassVisitor;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -226,7 +226,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 				return null;
 			}
 			
-			private VirtualFile getClassFile(@Nonnull PsiClass psiClass){
+			private VirtualFile getClassFile(@NotNull PsiClass psiClass){
 				String jvmClassName = getJVMClassName(psiClass);
 				if(jvmClassName == null)
 					jvmClassName = "";

@@ -24,16 +24,14 @@ package org.objectweb.asm.idea;
  * Time: 22:18
  */
 
+import com.intellij.diff.DiffManager;
+import com.intellij.diff.requests.DiffRequest;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.diff.DiffContent;
-import com.intellij.openapi.diff.DiffManager;
-import com.intellij.openapi.diff.DiffRequest;
-import com.intellij.openapi.diff.SimpleContent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -43,10 +41,10 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.ui.PopupHandler;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.idea.config.ASMPluginConfigurable;
 
 import javax.swing.*;
@@ -164,28 +162,31 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		
 		@Override
 		public void actionPerformed(final AnActionEvent e){
-			DiffManager.getInstance().getDiffTool().show(new DiffRequest(project){
+			DiffManager.getInstance().showDiff(project, new DiffRequest(){
 				@Override
-				public DiffContent[] getContents(){
-					// there must be a simpler way to obtain the file type
-					PsiFile           psiFile        = PsiFileFactory.getInstance(project).createFileFromText("asm." + extension, "");
-					final DiffContent currentContent = previousFile == null? new SimpleContent("") : new SimpleContent(document.getText(), psiFile.getFileType());
-					final DiffContent oldContent     = new SimpleContent(previousCode == null? "" : previousCode, psiFile.getFileType());
-					return new DiffContent[]{
-						oldContent,
-						currentContent
-					};
-				}
-				
-				@Override
-				public String[] getContentTitles(){
-					return DIFF_TITLES;
-				}
-				
-				@Override
-				public String getWindowTitle(){
+				public @NlsContexts.DialogTitle @NotNull String getTitle(){
 					return DIFF_WINDOW_TITLE;
 				}
+
+
+
+//				@Override
+//				public DiffContent[] getContents(){
+//					// there must be a simpler way to obtain the file type
+//					PsiFile           psiFile        = PsiFileFactory.getInstance(project).createFileFromText("asm." + extension, "");
+//					final DiffContent currentContent = previousFile == null? new SimpleContent("") : new SimpleContent(document.getText(), psiFile.getFileType());
+//					final DiffContent oldContent     = new SimpleContent(previousCode == null? "" : previousCode, psiFile.getFileType());
+//					return new DiffContent[]{
+//						oldContent,
+//						currentContent
+//					};
+//				}
+//
+//				@Override
+//				public String[] getContentTitles(){
+//					return DIFF_TITLES;
+//				}
+			
 			});
 		}
 	}
