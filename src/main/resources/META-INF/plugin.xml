@@ -78,7 +78,7 @@
 	</actions>
 
 	<extensions defaultExtensionNs="com.intellij">
-		<toolWindow id="ASM" anchor="right" icon="/images/asm.gif"
+		<toolWindow id="ASM" anchor="right" icon="/images/asm.png"
 					factoryClass="org.objectweb.asm.idea.BytecodeOutlineToolWindowFactory"/>
 		<projectService serviceImplementation="org.objectweb.asm.idea.config.ASMPluginComponent" />
 		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeOutline"/>
