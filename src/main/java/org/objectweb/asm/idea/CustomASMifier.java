@@ -46,11 +46,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
@@ -133,7 +135,7 @@ public final class CustomASMifier extends Printer{
 	/**
 	 * The name of the Label variables in the produced code.
 	 */
-	private Map<Label, String> labelNames;
+	private final Map<Label, String> labelNames = new HashMap<>();
 	
 	/**
 	 * Constructs a new {@link CustomASMifier}. <i>Subclasses must not use this constructor</i>. Instead,
@@ -208,13 +210,7 @@ public final class CustomASMifier extends Printer{
 	// -----------------------------------------------------------------------------------------------
 	
 	@Override
-	public void visit(
-		final int version,
-		final int access,
-		final String name,
-		final String signature,
-		final String superName,
-		final String[] interfaces){
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces){
 		String simpleName;
 		if(name == null) simpleName = "module-info";
 		else{
@@ -398,12 +394,7 @@ public final class CustomASMifier extends Printer{
 	}
 	
 	@Override
-	public CustomASMifier visitField(
-		final int access,
-		final String name,
-		final String descriptor,
-		final String signature,
-		final Object value){
+	public CustomASMifier visitField(int access, String name, String descriptor, String signature, Object value){
 		stringBuilder.setLength(0);
 		stringBuilder.append("{\n");
 		stringBuilder.append("fieldVisitor = classWriter.visitField(");
@@ -425,12 +416,7 @@ public final class CustomASMifier extends Printer{
 	}
 	
 	@Override
-	public CustomASMifier visitMethod(
-		final int access,
-		final String name,
-		final String descriptor,
-		final String signature,
-		final String[] exceptions){
+	public CustomASMifier visitMethod(int access, String name, String descriptor, String signature, String[] exceptions){
 		stringBuilder.setLength(0);
 		stringBuilder.append("{\n");
 		stringBuilder.append("methodVisitor = classWriter.visitMethod(");
@@ -769,12 +755,7 @@ public final class CustomASMifier extends Printer{
 	}
 	
 	@Override
-	public void visitFrame(
-		final int type,
-		final int numLocal,
-		final Object[] local,
-		final int numStack,
-		final Object[] stack){
+	public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack){
 		stringBuilder.setLength(0);
 		switch(type){
 			case Opcodes.F_NEW, Opcodes.F_FULL -> {
@@ -1080,14 +1061,8 @@ public final class CustomASMifier extends Printer{
 	}
 	
 	@Override
-	public Printer visitLocalVariableAnnotation(
-		final int typeRef,
-		final TypePath typePath,
-		final Label[] start,
-		final Label[] end,
-		final int[] index,
-		final String descriptor,
-		final boolean visible){
+	public Printer visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index,
+	                                            String descriptor, boolean visible){
 		stringBuilder.setLength(0);
 		stringBuilder
 			.append("{\n")
@@ -1209,12 +1184,7 @@ public final class CustomASMifier extends Printer{
 	 * @param visible    {@literal true} if the annotation is visible at runtime.
 	 * @return a new {@link ASMifier} to visit the annotation values.
 	 */
-	public CustomASMifier visitTypeAnnotation(
-		final String method,
-		final int typeRef,
-		final TypePath typePath,
-		final String descriptor,
-		final boolean visible){
+	public CustomASMifier visitTypeAnnotation(String method, int typeRef, TypePath typePath, String descriptor, boolean visible){
 		stringBuilder.setLength(0);
 		stringBuilder
 			.append("{\n")
@@ -1247,9 +1217,6 @@ public final class CustomASMifier extends Printer{
 		stringBuilder.setLength(0);
 		stringBuilder.append("// ATTRIBUTE ").append(attribute.type).append('\n');
 		if(attribute instanceof ASMifierSupport){
-			if(labelNames == null){
-				labelNames = new HashMap<>();
-			}
 			stringBuilder.append("{\n");
 			((ASMifierSupport)attribute).asmify(stringBuilder, "attribute", labelNames);
 			stringBuilder.append(name).append(".visitAttribute(attribute);\n");
@@ -1279,175 +1246,56 @@ public final class CustomASMifier extends Printer{
 	 * @return a new {@link ASMifier}.
 	 */
 	// DontCheck(AbbreviationAsWordInName): can't be renamed (for backward binary compatibility).
-	private CustomASMifier createASMifier(
-		final String visitorVariableName, final int annotationVisitorId){
+	private CustomASMifier createASMifier(final String visitorVariableName, final int annotationVisitorId){
 		return new CustomASMifier(api, visitorVariableName, annotationVisitorId);
 	}
 	
 	/**
 	 * Appends a string representation of the given access flags to {@link #stringBuilder}.
 	 *
-	 * @param accessFlags some access flags.
+	 * @param flags some access flags.
 	 */
-	private void appendAccessFlags(final int accessFlags){
-		boolean isEmpty = true;
-		if((accessFlags&Opcodes.ACC_PUBLIC) != 0){
-			stringBuilder.append("Opcodes.ACC_PUBLIC");
-			isEmpty = false;
+	private void appendAccessFlags(int flags){
+		var opStrs = new ArrayList<String>();
+		
+		if((flags&Opcodes.ACC_PUBLIC) != 0) opStrs.add("ACC_PUBLIC");
+		if((flags&Opcodes.ACC_PRIVATE) != 0) opStrs.add("ACC_PRIVATE");
+		if((flags&Opcodes.ACC_PROTECTED) != 0) opStrs.add("ACC_PROTECTED");
+		if((flags&Opcodes.ACC_FINAL) != 0){
+			if((flags&ACCESS_MODULE) == 0) opStrs.add("ACC_FINAL");
+			else opStrs.add("ACC_TRANSITIVE");
 		}
-		if((accessFlags&Opcodes.ACC_PRIVATE) != 0){
-			stringBuilder.append("Opcodes.ACC_PRIVATE");
-			isEmpty = false;
+		if((flags&Opcodes.ACC_STATIC) != 0) opStrs.add("ACC_STATIC");
+		if((flags&(Opcodes.ACC_SYNCHRONIZED|Opcodes.ACC_SUPER|Opcodes.ACC_TRANSITIVE)) != 0){
+			if((flags&ACCESS_CLASS) == 0){
+				if((flags&ACCESS_MODULE) == 0) opStrs.add("ACC_SYNCHRONIZED");
+				else opStrs.add("ACC_TRANSITIVE");
+			}else opStrs.add("ACC_SUPER");
 		}
-		if((accessFlags&Opcodes.ACC_PROTECTED) != 0){
-			stringBuilder.append("Opcodes.ACC_PROTECTED");
-			isEmpty = false;
+		if((flags&(Opcodes.ACC_VOLATILE|Opcodes.ACC_BRIDGE|Opcodes.ACC_STATIC_PHASE)) != 0){
+			if((flags&ACCESS_FIELD) == 0){
+				if((flags&ACCESS_MODULE) == 0) opStrs.add("ACC_BRIDGE");
+				else opStrs.add("ACC_STATIC_PHASE");
+			}else opStrs.add("ACC_VOLATILE");
 		}
-		if((accessFlags&Opcodes.ACC_FINAL) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			if((accessFlags&ACCESS_MODULE) == 0){
-				stringBuilder.append("Opcodes.ACC_FINAL");
-			}else{
-				stringBuilder.append("Opcodes.ACC_TRANSITIVE");
-			}
-			isEmpty = false;
+		if((flags&Opcodes.ACC_VARARGS) != 0 && (flags&(ACCESS_CLASS|ACCESS_FIELD)) == 0) opStrs.add("ACC_VARARGS");
+		if((flags&Opcodes.ACC_TRANSIENT) != 0 && (flags&ACCESS_FIELD) != 0) opStrs.add("ACC_TRANSIENT");
+		if((flags&Opcodes.ACC_NATIVE) != 0 && (flags&(ACCESS_CLASS|ACCESS_FIELD)) == 0) opStrs.add("ACC_NATIVE");
+		if((flags&Opcodes.ACC_ENUM) != 0 && (flags&(ACCESS_CLASS|ACCESS_FIELD|ACCESS_INNER)) != 0) opStrs.add("ACC_ENUM");
+		if((flags&Opcodes.ACC_ANNOTATION) != 0 && (flags&(ACCESS_CLASS|ACCESS_INNER)) != 0) opStrs.add("ACC_ANNOTATION");
+		if((flags&Opcodes.ACC_ABSTRACT) != 0) opStrs.add("ACC_ABSTRACT");
+		if((flags&Opcodes.ACC_INTERFACE) != 0) opStrs.add("ACC_INTERFACE");
+		if((flags&Opcodes.ACC_STRICT) != 0) opStrs.add("ACC_STRICT");
+		if((flags&Opcodes.ACC_SYNTHETIC) != 0) opStrs.add("ACC_SYNTHETIC");
+		if((flags&Opcodes.ACC_DEPRECATED) != 0) opStrs.add("ACC_DEPRECATED");
+		if((flags&Opcodes.ACC_RECORD) != 0) opStrs.add("ACC_RECORD");
+		if((flags&(Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0){
+			if((flags&ACCESS_CLASS) == 0) opStrs.add("ACC_MANDATED");
+			else opStrs.add("ACC_MODULE");
 		}
-		if((accessFlags&Opcodes.ACC_STATIC) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_STATIC");
-			isEmpty = false;
-		}
-		if((accessFlags&(Opcodes.ACC_SYNCHRONIZED|Opcodes.ACC_SUPER|Opcodes.ACC_TRANSITIVE))
-		   != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			if((accessFlags&ACCESS_CLASS) == 0){
-				if((accessFlags&ACCESS_MODULE) == 0){
-					stringBuilder.append("Opcodes.ACC_SYNCHRONIZED");
-				}else{
-					stringBuilder.append("Opcodes.ACC_TRANSITIVE");
-				}
-			}else{
-				stringBuilder.append("Opcodes.ACC_SUPER");
-			}
-			isEmpty = false;
-		}
-		if((accessFlags&(Opcodes.ACC_VOLATILE|Opcodes.ACC_BRIDGE|Opcodes.ACC_STATIC_PHASE))
-		   != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			if((accessFlags&ACCESS_FIELD) == 0){
-				if((accessFlags&ACCESS_MODULE) == 0){
-					stringBuilder.append("Opcodes.ACC_BRIDGE");
-				}else{
-					stringBuilder.append("Opcodes.ACC_STATIC_PHASE");
-				}
-			}else{
-				stringBuilder.append("Opcodes.ACC_VOLATILE");
-			}
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_VARARGS) != 0
-		   && (accessFlags&(ACCESS_CLASS|ACCESS_FIELD)) == 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_VARARGS");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_TRANSIENT) != 0 && (accessFlags&ACCESS_FIELD) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_TRANSIENT");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_NATIVE) != 0
-		   && (accessFlags&(ACCESS_CLASS|ACCESS_FIELD)) == 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_NATIVE");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_ENUM) != 0
-		   && (accessFlags&(ACCESS_CLASS|ACCESS_FIELD|ACCESS_INNER)) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_ENUM");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_ANNOTATION) != 0
-		   && (accessFlags&(ACCESS_CLASS|ACCESS_INNER)) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_ANNOTATION");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_ABSTRACT) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_ABSTRACT");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_INTERFACE) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_INTERFACE");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_STRICT) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_STRICT");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_SYNTHETIC) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_SYNTHETIC");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_DEPRECATED) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_DEPRECATED");
-			isEmpty = false;
-		}
-		if((accessFlags&Opcodes.ACC_RECORD) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			stringBuilder.append("Opcodes.ACC_RECORD");
-			isEmpty = false;
-		}
-		if((accessFlags&(Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0){
-			if(!isEmpty){
-				stringBuilder.append(" | ");
-			}
-			if((accessFlags&ACCESS_CLASS) == 0){
-				stringBuilder.append("Opcodes.ACC_MANDATED");
-			}else{
-				stringBuilder.append("Opcodes.ACC_MODULE");
-			}
-			isEmpty = false;
-		}
-		if(isEmpty){
-			stringBuilder.append('0');
-		}
+		
+		if(opStrs.isEmpty()) stringBuilder.append('0');
+		else stringBuilder.append(opStrs.stream().map(s -> "Opcodes.").collect(Collectors.joining(" | ")));
 	}
 	
 	/**
@@ -1458,9 +1306,8 @@ public final class CustomASMifier extends Printer{
 	 *              or an array of primitive values. May be {@literal null}.
 	 */
 	private void appendConstant(final Object value){
-		if(value == null){
-			stringBuilder.append("null");
-		}else if(value instanceof String v) appendString(stringBuilder, v);
+		if(value == null) stringBuilder.append("null");
+		else if(value instanceof String v) appendString(stringBuilder, v);
 		else if(value instanceof Type v) stringBuilder.append("Type.getType(\"").append(v.getDescriptor()).append("\")");
 		else if(value instanceof Handle handle){
 			stringBuilder.append("new Handle(")
@@ -1484,73 +1331,43 @@ public final class CustomASMifier extends Printer{
 				}
 			}
 			stringBuilder.append("})");
-		}else if(value instanceof Byte v){
-			stringBuilder.append("new Byte((byte)").append(v).append(')');
-		}else if(value instanceof Boolean v){
-			stringBuilder.append(v? "Boolean.TRUE" : "Boolean.FALSE");
-		}else if(value instanceof Short v){
-			stringBuilder.append("new Short((short)").append(v).append(')');
-		}else if(value instanceof Character v){
-			stringBuilder
-				.append("new Character((char)")
-				.append((int)v)
-				.append(')');
-		}else if(value instanceof Integer v){
-			stringBuilder.append("new Integer(").append(v).append(')');
-		}else if(value instanceof Float v){
-			stringBuilder.append("new Float(\"").append(v).append("\")");
-		}else if(value instanceof Long v){
-			stringBuilder.append("new Long(").append(v).append("L)");
-		}else if(value instanceof Double v){
-			stringBuilder.append("new Double(\"").append(v).append("\")");
-		}else if(value instanceof byte[] byteArray){
-			stringBuilder.append("new byte[] {");
-			for(int i = 0; i<byteArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(byteArray[i]);
-			}
-			stringBuilder.append('}');
+		}else if(value instanceof Byte v) stringBuilder.append("new Byte((byte)").append(v).append(')');
+		else if(value instanceof Boolean v) stringBuilder.append(v? "Boolean.TRUE" : "Boolean.FALSE");
+		else if(value instanceof Short v) stringBuilder.append("new Short((short)").append(v).append(')');
+		else if(value instanceof Character v){
+			stringBuilder.append("new Character((char)")
+			             .append((int)v)
+			             .append(')');
+		}else if(value instanceof Integer v) stringBuilder.append("new Integer(").append(v).append(')');
+		else if(value instanceof Float v) stringBuilder.append("new Float(\"").append(v).append("\")");
+		else if(value instanceof Long v) stringBuilder.append("new Long(").append(v).append("L)");
+		else if(value instanceof Double v) stringBuilder.append("new Double(\"").append(v).append("\")");
+		else if(value instanceof byte[] byteArray){
+			stringBuilder.append(IntStream.range(0, byteArray.length).mapToObj(i -> byteArray[i] + "")
+			                              .collect(Collectors.joining(",", "new byte[] {", "}")));
 		}else if(value instanceof boolean[] booleanArray){
-			stringBuilder.append("new boolean[] {");
-			for(int i = 0; i<booleanArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(booleanArray[i]);
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(IntStream.range(0, booleanArray.length).mapToObj(i -> booleanArray[i] + "")
+			                              .collect(Collectors.joining(",", "new boolean[] {", "}")));
 		}else if(value instanceof short[] shortArray){
-			stringBuilder.append("new short[] {");
-			for(int i = 0; i<shortArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append("(short)").append(shortArray[i]);
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(IntStream.range(0, shortArray.length).mapToObj(i -> "(short)" + shortArray[i])
+			                              .collect(Collectors.joining(",", "new short[] {", "}")));
 		}else if(value instanceof char[] charArray){
-			stringBuilder.append("new char[] {");
-			for(int i = 0; i<charArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append("(char)").append((int)charArray[i]);
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(IntStream.range(0, charArray.length).mapToObj(i -> "(char)" + (int)charArray[i])
+			                              .collect(Collectors.joining(",", "new char[] {", "}")));
 		}else if(value instanceof int[] intArray){
-			stringBuilder.append("new int[] {");
-			for(int i = 0; i<intArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(intArray[i]);
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(Arrays.stream(intArray).mapToObj(j -> j + "")
+			                           .collect(Collectors.joining(",", "new int[] {", "}")));
 		}else if(value instanceof long[] longArray){
-			stringBuilder.append("new long[] {");
-			for(int i = 0; i<longArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(longArray[i]).append('L');
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(Arrays.stream(longArray).mapToObj(l -> l + "L")
+			                           .collect(Collectors.joining(",", "new long[] {", "}")));
 		}else if(value instanceof float[] floatArray){
-			stringBuilder.append("new float[] {");
-			for(int i = 0; i<floatArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(floatArray[i]).append('f');
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(IntStream.range(0, floatArray.length).mapToObj(i -> floatArray[i] + "F")
+			                              .collect(Collectors.joining(",", "new float[] {", "}")));
 		}else if(value instanceof double[] doubleArray){
-			stringBuilder.append("new double[] {");
-			for(int i = 0; i<doubleArray.length; i++){
-				stringBuilder.append(i == 0? "" : ",").append(doubleArray[i]).append('d');
-			}
-			stringBuilder.append('}');
+			stringBuilder.append(Arrays.stream(doubleArray).mapToObj(v -> v + "D")
+			                           .collect(Collectors.joining(",", "new double[] {", "}")));
+		}else{
+			stringBuilder.append("/* UNKNOWN CONSTANT TYPE \"").append(value).append("\"*/");
 		}
 	}
 	
@@ -1563,8 +1380,8 @@ public final class CustomASMifier extends Printer{
 	 */
 	private void declareFrameTypes(final int numTypes, final Object[] frameTypes){
 		for(int i = 0; i<numTypes; ++i){
-			if(frameTypes[i] instanceof Label){
-				declareLabel((Label)frameTypes[i]);
+			if(frameTypes[i] instanceof Label l){
+				declareLabel(l);
 			}
 		}
 	}
@@ -1583,8 +1400,8 @@ public final class CustomASMifier extends Printer{
 			}
 			if(frameTypes[i] instanceof String){
 				appendConstant(frameTypes[i]);
-			}else if(frameTypes[i] instanceof Integer){
-				stringBuilder.append(FRAME_TYPES.get((Integer)frameTypes[i]));
+			}else if(frameTypes[i] instanceof Integer v){
+				stringBuilder.append(FRAME_TYPES.get(v));
 			}else{
 				appendLabel((Label)frameTypes[i]);
 			}
@@ -1599,12 +1416,8 @@ public final class CustomASMifier extends Printer{
 	 * @param label a label.
 	 */
 	private void declareLabel(final Label label){
-		if(labelNames == null){
-			labelNames = new HashMap<>();
-		}
-		String labelName = labelNames.get(label);
-		if(labelName == null){
-			labelName = "label" + labelNames.size();
+		if(!labelNames.containsKey(label)){
+			var labelName = "label" + labelNames.size();
 			labelNames.put(label, labelName);
 			stringBuilder.append("Label ").append(labelName).append(" = new Label();\n");
 		}
