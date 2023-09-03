@@ -1,110 +1,59 @@
 plugins {
-    id 'org.jetbrains.intellij' version '1.2.1'
-    id "com.github.johnrengelman.shadow" version "7.1.0"
-    id 'java'
+	id 'org.jetbrains.intellij' version '1.13.2'
+	id "com.github.johnrengelman.shadow" version "7.1.0"
+	id 'java'
 }
 
 group 'com.thiakil.idea.asm'
-version '2021.10.1'
-sourceCompatibility = 11
+version '2023.2.1'
+sourceCompatibility=17
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 //setup a config so gradle prioritises our version of ASM
 configurations {
-    priority
-    sourceSets.main.compileClasspath = configurations.priority + sourceSets.main.compileClasspath
-    sourceSets.main.runtimeClasspath = configurations.priority + sourceSets.main.runtimeClasspath
+	priority
+	sourceSets.main.compileClasspath = configurations.priority + sourceSets.main.compileClasspath
+	sourceSets.main.runtimeClasspath = configurations.priority + sourceSets.main.runtimeClasspath
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version'
 
-    priority "org.ow2.asm:asm:$asm_version"
-    priority "org.ow2.asm:asm-commons:$asm_version"
-    priority "org.ow2.asm:asm-util:$asm_version"
+	implementation group: 'org.ow2.asm', name: 'asm', version: '9.5'
 
-    //duplicated here so that IJ plugin puts them in the zip distribution
-    //runtimeOnly "org.ow2.asm:asm:$asm_version"
-    //runtimeOnly "org.ow2.asm:asm-util:$asm_version"
+	priority "org.ow2.asm:asm:$asm_version"
+	priority "org.ow2.asm:asm-commons:$asm_version"
+	priority "org.ow2.asm:asm-util:$asm_version"
+
+	//duplicated here so that IJ plugin puts them in the zip distribution
+	runtimeOnly "org.ow2.asm:asm:$asm_version"
+	runtimeOnly "org.ow2.asm:asm-commons:$asm_version"
+	runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 }
 
 shadowJar {
-    configurations = [project.configurations.priority]
-    relocate ('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
-        exclude 'org.objectweb.asm.idea.**'
-    }
-    archiveClassifier.set('')
+	configurations = [project.configurations.priority]
+	relocate ('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
+		exclude 'org.objectweb.asm.idea.**'
+	}
+	archiveClassifier.set('')
 }
 
 jar {
-    finalizedBy(tasks.shadowJar)
+	finalizedBy(tasks.shadowJar)
 }
 
 prepareSandbox.dependsOn(shadowJar)
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = '2021.2.3'
-    plugins = ['java']
-}
-patchPluginXml {
-    sinceBuild = '203.0'
-    changeNotes = """
-      <b>Version 0.3.5.2017.12.10 (10 December 2017)</b>
-        <ul>
-        	<li>ASM updated to 6.0 (J9 support, ASMified fixes)</li>
-        	<li>Inner/Anonymous classes work with library files</li>
-        	<li>Fix ASMified code formatting</li>
-        	<li>Added custom ASMifier to tidy class declaration and namespace the Opcodes</li>
-        	<li>Fix settings pane not showing/applying settings</li>
-        	<li>Ensure anonymous classes in source files can be viewed</li>
-        	<li>ASM decode runs on background thread to not lock up UI</li>
-        	<li>Bytecode views scroll to the top when content changes</li>
-        	<li>Failure to find class file now results in balloon above status bar</li>
-        </ul>
-        <b>Version 0.3.5</b>
-        <ul>
-            <li>Fixed ASM lib classes version</li>
-            <li>Upgraded ASM to 5.0.5</li>
-        </ul>
-        <b>Version 0.3.4</b>
-        <ul>
-            <li>Support bytecode display for inner classes based on the caret position in the active editor</li>
-            <li>Fix outline not beeing always updated when file changed</li>
-        </ul>
-        <b>Version 0.3.3</b>
-        <ul>
-            <li>Upgraded ASM to 5.0</li>
-        </ul>
-        <b>Version 0.3.2</b>
-        <ul>
-            <li>Upgraded ASM to 4.0</li>
-        </ul>
-        <b>Version 0.3.1</b>
-        <ul>
-            <li>Updated for IntelliJ IDEA 10.0.2</li>
-            <li>Supports showing bytecode for .class files for which we have source code</li>
-        </ul>
-        <b>Version 0.3</b>
-        <ul>
-            <li>Add diff view popup which shows the differences with the previous version of bytecode</li>
-            <li>Search in every output directory, including test files</li>
-            <li>Support for Groovy @groovyx.ast.bytecode.Bytecode annotation</li>
-            <li>Configuration of ASM ClassReader flags</li>
-            <li>Configuration of Groovy code style</li>
-        </ul>
-        <b>Version 0.2</b>
-        <ul>
-            <li>Fixed .class files not being found under Windows</li>
-            <li>Fixed tool window not opening if output directory doesn't exist</li>
-            <li>Added shortcut in "Code" menu</li>
-            <li>Do not compile file if up-to-date</li>
-        </ul>"""
+	version = '2023.2.1'
+	plugins = ['java']
 }
 test {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
