@@ -18,8 +18,9 @@
 
 package org.objectweb.asm.idea;
 
+import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
-import com.intellij.diff.requests.DiffRequest;
+import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -32,12 +33,13 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.ui.PopupHandler;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.idea.config.ASMPluginConfigurable;
@@ -56,10 +58,8 @@ import java.awt.BorderLayout;
  * @author Thiakil (December 2017)
  */
 public class ACodeView extends SimpleToolWindowPanel implements Disposable{
-	private static final String   DIFF_WINDOW_TITLE = "Show differences from previous class contents";
-	private static final String[] DIFF_TITLES       = {"Previous version", "Current version"};
-	protected final      Project  project;
-	private final        String   extension;
+	protected final Project project;
+	private final   String  extension;
 	
 	
 	protected Editor      editor;
@@ -166,32 +166,17 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		
 		@Override
 		public void actionPerformed(final @NotNull AnActionEvent e){
-			DiffManager.getInstance().showDiff(project, new DiffRequest(){
-				@Override
-				public @NlsContexts.DialogTitle @NotNull String getTitle(){
-					return DIFF_WINDOW_TITLE;
-				}
-
-
-
-//				@Override
-//				public DiffContent[] getContents(){
-//					// there must be a simpler way to obtain the file type
-//					PsiFile           psiFile        = PsiFileFactory.getInstance(project).createFileFromText("asm." + extension, "");
-//					final DiffContent currentContent = previousFile == null? new SimpleContent("") : new SimpleContent(document.getText(), psiFile.getFileType());
-//					final DiffContent oldContent     = new SimpleContent(previousCode == null? "" : previousCode, psiFile.getFileType());
-//					return new DiffContent[]{
-//						oldContent,
-//						currentContent
-//					};
-//				}
-//
-//				@Override
-//				public String[] getContentTitles(){
-//					return DIFF_TITLES;
-//				}
-			
-			});
+			// there must be a simpler way to obtain the file type
+			var psiFile        = FileTypeRegistry.getInstance().getFileTypeByExtension(extension);
+			var currentContent = DiffContentFactory.getInstance().create(previousFile == null? "" : document.getText(), psiFile);
+			var oldContent     = DiffContentFactory.getInstance().create(previousCode == null? "" : previousCode, psiFile);
+			DiffManager.getInstance().showDiff(
+				project,
+				new SimpleDiffRequest(
+					"Show Differences from Previous Class Contents",
+					oldContent, currentContent,
+					"Previous version", "Current version"
+				));
 		}
 	}
 }
