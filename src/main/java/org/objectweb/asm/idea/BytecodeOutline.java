@@ -18,18 +18,7 @@
 
 package org.objectweb.asm.idea;
 
-import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentContainer;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 
 /**
@@ -42,13 +31,13 @@ import java.awt.*;
 /**
  * Bytecode view.
  */
-public class BytecodeOutline extends ACodeView {
-
-	public BytecodeOutline(final Project project) {
+public class BytecodeOutline extends ACodeView{
+	
+	public BytecodeOutline(final Project project){
 		super(project);
 	}
-
-	public static BytecodeOutline getInstance(Project project) {
+	
+	public static BytecodeOutline getInstance(Project project){
 		return project.getService(BytecodeOutline.class);
 	}
 }

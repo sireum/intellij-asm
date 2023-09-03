@@ -27,13 +27,13 @@ package org.objectweb.asm.idea.config;
 /**
  * Enumeration of Groovy code styles
  */
-public enum GroovyCodeStyle {
-    LEGACY("Legacy bytecode"),
-    GROOVIFIER_0_2_0("Groovified bytecode");
-
-    String label;
-
-    GroovyCodeStyle(final String label) {
-        this.label = label;
-    }
+public enum GroovyCodeStyle{
+	LEGACY("Legacy bytecode"),
+	GROOVIFIER_0_2_0("Groovified bytecode");
+	
+	String label;
+	
+	GroovyCodeStyle(final String label){
+		this.label = label;
+	}
 }

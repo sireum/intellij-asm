@@ -18,10 +18,7 @@
 
 package org.objectweb.asm.idea;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindowManager;
 
 
 /**
@@ -34,13 +31,13 @@ import com.intellij.openapi.wm.ToolWindowManager;
 /**
  * The groovified view displays @groovyx.ast.bytecode.Bytecode code for methods.
  */
-public class GroovifiedView extends ACodeView {
-
-	public GroovifiedView(final Project project) {
+public class GroovifiedView extends ACodeView{
+	
+	public GroovifiedView(final Project project){
 		super(project, "groovy");
 	}
-
-	public static GroovifiedView getInstance(Project project) {
+	
+	public static GroovifiedView getInstance(Project project){
 		return project.getService(GroovifiedView.class);
 	}
 }

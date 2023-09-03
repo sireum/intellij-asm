@@ -44,14 +44,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.ui.PopupHandler;
 import org.objectweb.asm.idea.config.ASMPluginConfigurable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 
 /**
  * Base class for editors which displays bytecode or ASMified code.
@@ -59,135 +58,135 @@ import java.awt.*;
  * @author Cédric Champeau
  * @author Thiakil (December 2017)
  */
-public class ACodeView extends SimpleToolWindowPanel implements Disposable {
-    private static final String DIFF_WINDOW_TITLE = "Show differences from previous class contents";
-    private static final String[] DIFF_TITLES = {"Previous version", "Current version"};
-    protected final Project project;
-    private final String extension;
-
-
-    protected Editor editor;
-    protected Document document;
-    // used for diff view
-    private String previousCode;
-    private VirtualFile previousFile;
-
-    public ACodeView(final Project project, final String fileExtension) {
-        super(true, true);
-        this.project = project;
-        this.extension = fileExtension;
-        setupUI();
-    }
-
-    public ACodeView(final Project project) {
-        this(project, "java");
-    }
-
-    private void setupUI() {
-        final EditorFactory editorFactory = EditorFactory.getInstance();
-        document = editorFactory.createDocument("");
-        editor = editorFactory.createEditor(document, project, FileTypeManager.getInstance().getFileTypeByExtension(extension), true);
-
-        final JComponent editorComponent = editor.getComponent();
-        add(editorComponent);
-        final AnAction diffAction = createShowDiffAction();
-        DefaultActionGroup group = new DefaultActionGroup();
-        group.add(diffAction);
-        group.add(new ShowSettingsAction());
-        
-        final ActionManager actionManager = ActionManager.getInstance();
-        final ActionToolbar actionToolBar = actionManager.createActionToolbar("ASM", group, true);
-        final JPanel buttonsPanel = new JPanel(new BorderLayout());
-        buttonsPanel.add(actionToolBar.getComponent(), BorderLayout.CENTER);
-        PopupHandler.installPopupMenu(editor.getContentComponent(), group, "ASM");
-        setToolbar(buttonsPanel);
-    }
-
-    public void setCode(final VirtualFile file, final String code) {
-        final String text = document.getText();
-        if (previousFile == null || file == null || previousFile.getPath().equals(file.getPath()) && !text.isEmpty()) {
-            if (file != null) previousCode = text;
-        } else if (!previousFile.getPath().equals(file.getPath())) {
-            previousCode = ""; // reset previous code
-        }
-        document.setText(code);
-        if (file != null) previousFile = file;
-        editor.getScrollingModel().scrollTo(editor.offsetToLogicalPosition(0), ScrollType.MAKE_VISIBLE);
-    }
-
-
-
-    public void dispose() {
-        if (editor != null) {
-            final EditorFactory editorFactory = EditorFactory.getInstance();
-            editorFactory.releaseEditor(editor);
-            editor = null;
-        }
-    }
-
-    private AnAction createShowDiffAction() {
-        return new ShowDiffAction();
-    }
-
-    private class ShowSettingsAction extends AnAction {
-
-        private ShowSettingsAction() {
-            super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png", ShowSettingsAction.class));
-        }
-
-        @Override
-        public boolean displayTextInToolbar() {
-            return true;
-        }
-
-        @Override
-        public void actionPerformed(final AnActionEvent e) {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, ASMPluginConfigurable.class);
-        }
-    }
-    private class ShowDiffAction extends AnAction {
-
-        public ShowDiffAction() {
-            super("Show differences",
-                    "Shows differences from the previous version of bytecode for this file",
-                    IconLoader.getIcon("/actions/diffWithCurrent.png", ShowDiffAction.class));
-        }
-
-        @Override
-        public void update(final AnActionEvent e) {
-            e.getPresentation().setEnabled(!"".equals(previousCode) && (previousFile!=null));
-        }
-
-        @Override
-        public boolean displayTextInToolbar() {
-            return true;
-        }
-
-        @Override
-        public void actionPerformed(final AnActionEvent e) {
-            DiffManager.getInstance().getDiffTool().show(new DiffRequest(project) {
-                @Override
-                public DiffContent[] getContents() {
-                    // there must be a simpler way to obtain the file type
-                    PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm." + extension, "");
-                    final DiffContent currentContent = previousFile == null ? new SimpleContent("") : new SimpleContent(document.getText(), psiFile.getFileType());
-                    final DiffContent oldContent = new SimpleContent(previousCode == null ? "" : previousCode, psiFile.getFileType());
-                    return new DiffContent[]{
-                            oldContent,
-                            currentContent
-                    };
-                }
-
-                @Override
-                public String[] getContentTitles() {
-                    return DIFF_TITLES;
-                }
-
-                @Override
-                public String getWindowTitle() {
-                    return DIFF_WINDOW_TITLE;
-                }
-            });
-        }
-    }
+public class ACodeView extends SimpleToolWindowPanel implements Disposable{
+	private static final String   DIFF_WINDOW_TITLE = "Show differences from previous class contents";
+	private static final String[] DIFF_TITLES       = {"Previous version", "Current version"};
+	protected final      Project  project;
+	private final        String   extension;
+	
+	
+	protected Editor      editor;
+	protected Document    document;
+	// used for diff view
+	private   String      previousCode;
+	private   VirtualFile previousFile;
+	
+	public ACodeView(final Project project, final String fileExtension){
+		super(true, true);
+		this.project = project;
+		this.extension = fileExtension;
+		setupUI();
+	}
+	
+	public ACodeView(final Project project){
+		this(project, "java");
+	}
+	
+	private void setupUI(){
+		final EditorFactory editorFactory = EditorFactory.getInstance();
+		document = editorFactory.createDocument("");
+		editor = editorFactory.createEditor(document, project, FileTypeManager.getInstance().getFileTypeByExtension(extension), true);
+		
+		final JComponent editorComponent = editor.getComponent();
+		add(editorComponent);
+		final AnAction     diffAction = createShowDiffAction();
+		DefaultActionGroup group      = new DefaultActionGroup();
+		group.add(diffAction);
+		group.add(new ShowSettingsAction());
+		
+		final ActionManager actionManager = ActionManager.getInstance();
+		final ActionToolbar actionToolBar = actionManager.createActionToolbar("ASM", group, true);
+		final JPanel        buttonsPanel  = new JPanel(new BorderLayout());
+		buttonsPanel.add(actionToolBar.getComponent(), BorderLayout.CENTER);
+		PopupHandler.installPopupMenu(editor.getContentComponent(), group, "ASM");
+		setToolbar(buttonsPanel);
+	}
+	
+	public void setCode(final VirtualFile file, final String code){
+		final String text = document.getText();
+		if(previousFile == null || file == null || previousFile.getPath().equals(file.getPath()) && !text.isEmpty()){
+			if(file != null) previousCode = text;
+		}else if(!previousFile.getPath().equals(file.getPath())){
+			previousCode = ""; // reset previous code
+		}
+		document.setText(code);
+		if(file != null) previousFile = file;
+		editor.getScrollingModel().scrollTo(editor.offsetToLogicalPosition(0), ScrollType.MAKE_VISIBLE);
+	}
+	
+	
+	public void dispose(){
+		if(editor != null){
+			final EditorFactory editorFactory = EditorFactory.getInstance();
+			editorFactory.releaseEditor(editor);
+			editor = null;
+		}
+	}
+	
+	private AnAction createShowDiffAction(){
+		return new ShowDiffAction();
+	}
+	
+	private class ShowSettingsAction extends AnAction{
+		
+		private ShowSettingsAction(){
+			super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png", ShowSettingsAction.class));
+		}
+		
+		@Override
+		public boolean displayTextInToolbar(){
+			return true;
+		}
+		
+		@Override
+		public void actionPerformed(final AnActionEvent e){
+			ShowSettingsUtil.getInstance().showSettingsDialog(project, ASMPluginConfigurable.class);
+		}
+	}
+	
+	private class ShowDiffAction extends AnAction{
+		
+		public ShowDiffAction(){
+			super("Show differences",
+			      "Shows differences from the previous version of bytecode for this file",
+			      IconLoader.getIcon("/actions/diffWithCurrent.png", ShowDiffAction.class));
+		}
+		
+		@Override
+		public void update(final AnActionEvent e){
+			e.getPresentation().setEnabled(!"".equals(previousCode) && (previousFile != null));
+		}
+		
+		@Override
+		public boolean displayTextInToolbar(){
+			return true;
+		}
+		
+		@Override
+		public void actionPerformed(final AnActionEvent e){
+			DiffManager.getInstance().getDiffTool().show(new DiffRequest(project){
+				@Override
+				public DiffContent[] getContents(){
+					// there must be a simpler way to obtain the file type
+					PsiFile           psiFile        = PsiFileFactory.getInstance(project).createFileFromText("asm." + extension, "");
+					final DiffContent currentContent = previousFile == null? new SimpleContent("") : new SimpleContent(document.getText(), psiFile.getFileType());
+					final DiffContent oldContent     = new SimpleContent(previousCode == null? "" : previousCode, psiFile.getFileType());
+					return new DiffContent[]{
+						oldContent,
+						currentContent
+					};
+				}
+				
+				@Override
+				public String[] getContentTitles(){
+					return DIFF_TITLES;
+				}
+				
+				@Override
+				public String getWindowTitle(){
+					return DIFF_WINDOW_TITLE;
+				}
+			});
+		}
+	}
 }

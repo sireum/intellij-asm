@@ -18,13 +18,7 @@
 
 package org.objectweb.asm.idea;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindowManager;
-
-import javax.swing.*;
-import java.awt.*;
 
 
 /**
@@ -37,13 +31,13 @@ import java.awt.*;
 /**
  * ASMified code view.
  */
-public class BytecodeASMified extends ACodeView {
-
-	public BytecodeASMified(final Project project) {
+public class BytecodeASMified extends ACodeView{
+	
+	public BytecodeASMified(final Project project){
 		super(project);
 	}
-
-	public static BytecodeASMified getInstance(Project project) {
+	
+	public static BytecodeASMified getInstance(Project project){
 		return project.getService(BytecodeASMified.class);
 	}
 }

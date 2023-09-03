@@ -27,6 +27,6 @@ package org.objectweb.asm.idea;
 /**
  * Constants used in various places of the code.
  */
-public abstract class Constants {
-    final static String NO_CLASS_FOUND = "Couldn't generate bytecode view, no .class file found";
+public abstract class Constants{
+	final static String NO_CLASS_FOUND = "Couldn't generate bytecode view, no .class file found";
 }
