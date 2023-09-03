@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.thiakil.idea.asm'
-version '2023.2.1'
+version '0.4'
 sourceCompatibility=17
 
 repositories {

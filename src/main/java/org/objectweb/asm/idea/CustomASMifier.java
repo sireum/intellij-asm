@@ -1295,7 +1295,7 @@ public final class CustomASMifier extends Printer{
 		}
 		
 		if(opStrs.isEmpty()) stringBuilder.append('0');
-		else stringBuilder.append(opStrs.stream().map(s -> "Opcodes.").collect(Collectors.joining(" | ")));
+		else stringBuilder.append(opStrs.stream().map(s -> "Opcodes." + s).collect(Collectors.joining(" | ")));
 	}
 	
 	/**

@@ -6,6 +6,7 @@
 	</description>
 	<version>0.4</version>
 	<vendor>LapisSea / thiakil / melix</vendor>
+	<id>asm.bytecode_outline.re</id>
 	
 	<change-notes><![CDATA[
 		<b>Version 0.4</b>
@@ -70,6 +71,11 @@
 	<application-components>
 	
 	</application-components>
+	
+	<depends>com.intellij.java</depends>
+	<depends>com.intellij.modules.platform</depends>
+	
+	<idea-version since-build="221.1"/>
 	
 	<actions>
 		<action id="showBytecodeOutline" class="org.objectweb.asm.idea.ShowBytecodeOutlineAction"
