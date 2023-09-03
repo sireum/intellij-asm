@@ -1,13 +1,19 @@
 <idea-plugin url="https://github.com/thiakil/asm-bytecode-intellij">
-	<name>ASM Bytecode Outline 2023</name>
-	<description>Displays bytecode for Java classes and ASMified code which will help you in your class generation. Updated for newer IDEA versions.</description>
-	<version>0.4.2023</version>
-	<vendor>LapisSea</vendor>
+	<name>ASM Bytecode Outline Rebooted</name>
+	<description>
+		Displays bytecode for Java classes and ASMified code which will help you in your class generation.
+		Updated for newer IDEA versions.
+	</description>
+	<version>0.4</version>
+	<vendor>LapisSea / thiakil / melix</vendor>
 	
 	<change-notes><![CDATA[
-		<b>Version 0.4.2023</b>
+		<b>Version 0.4</b>
 		<ul>
-			<li>ASM updated to 9.5</li>
+			<li>ASM updated to 9.5 (Java 20)</li>
+			<li>Updated source code to Java 17</li>
+			<li>Modernized codebase</li>
+			<li>Updated for Intellij IDEA 2023.2.1</li>
 		</ul>
 		<b>Version 0.3.5.2017.12.10 (10 December 2017)</b>
 		<ul>
@@ -65,12 +71,6 @@
 	
 	</application-components>
 	
-	<!--<project-components>
-		<component>
-			<implementation-class>org.objectweb.asm.idea.config.ASMPluginComponent</implementation-class>
-		</component>
-	</project-components>-->
-	
 	<actions>
 		<action id="showBytecodeOutline" class="org.objectweb.asm.idea.ShowBytecodeOutlineAction"
 		        text="Show Bytecode Outline" icon="/images/asm.png"
@@ -88,6 +88,6 @@
 		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeOutline"/>
 		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeASMified"/>
 		<projectService serviceImplementation="org.objectweb.asm.idea.GroovifiedView"/>
-		<projectConfigurable instance="org.objectweb.asm.idea.config.ASMPluginConfigurable" displayName="ASM Bytecode Outline" groupId="tools" id="asmbytecodeplugin"/>
+		<projectConfigurable instance="org.objectweb.asm.idea.config.ASMPluginConfigurable" displayName="ASM Bytecode Outline Rebooted" groupId="tools" id="asmbytecodeplugin"/>
 	</extensions>
 </idea-plugin>
