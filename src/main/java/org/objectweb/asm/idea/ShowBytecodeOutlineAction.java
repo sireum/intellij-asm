@@ -20,6 +20,7 @@ package org.objectweb.asm.idea;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -27,14 +28,12 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -95,6 +94,12 @@ public class ShowBytecodeOutlineAction extends AnAction{
 		presentation.setEnabled(psiFile instanceof PsiClassOwner);
 	}
 	
+	@Override
+	public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread(){
+		return ActionUpdateThread.EDT;
+	}
+	
+	@Override
 	public void actionPerformed(AnActionEvent e){
 		final VirtualFile virtualFile = e.getData(PlatformDataKeys.VIRTUAL_FILE);
 		final Project     project     = e.getData(PlatformDataKeys.PROJECT);
@@ -121,7 +126,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 						String   jvmClassName = getJVMClassName(aClass);
 						if(jvmClassName != null){
 							String           relativePath = jvmClassName.replace('.', '/') + ".class";
-							ProjectFileIndex index        = ProjectFileIndex.SERVICE.getInstance(aClass.getProject());
+							ProjectFileIndex index        = ProjectFileIndex.getInstance(aClass.getProject());
 							
 							PsiElement originalClass = aClass.getOriginalElement();
 							if(aClass instanceof PsiAnonymousClass){
@@ -151,71 +156,54 @@ public class ShowBytecodeOutlineAction extends AnAction{
 				}
 			}else{
 				final Application application = ApplicationManager.getApplication();
-				application.runWriteAction(new Runnable(){
-					public void run(){
-						FileDocumentManager.getInstance().saveAllDocuments();
+				application.runWriteAction(() -> FileDocumentManager.getInstance().saveAllDocuments());
+				application.executeOnPooledThread(() -> {
+					final CompileScope  compileScope      = compilerManager.createFilesCompileScope(files);
+					final VirtualFile[] result            = {null};
+					final VirtualFile[] outputDirectories = cme == null? null : cme.getOutputRoots(true);
+					final Semaphore     semaphore         = new Semaphore(1);
+					try{
+						semaphore.acquire();
+					}catch(InterruptedException e1){
+						result[0] = null;
 					}
-				});
-				application.executeOnPooledThread(new Runnable(){
-					public void run(){
-						final CompileScope  compileScope      = compilerManager.createFilesCompileScope(files);
-						final VirtualFile[] result            = {null};
-						final VirtualFile[] outputDirectories = cme == null? null : cme.getOutputRoots(true);
-						final Semaphore     semaphore         = new Semaphore(1);
-						try{
-							semaphore.acquire();
-						}catch(InterruptedException e1){
-							result[0] = null;
-						}
-						if(outputDirectories != null && compilerManager.isUpToDate(compileScope)){
-							application.invokeLater(new Runnable(){
-								public void run(){
-									result[0] = findClassFile(outputDirectories, psiFile);
-									semaphore.release();
-								}
-							});
-						}else{
-							application.invokeLater(new Runnable(){
-								public void run(){
-									compilerManager.compile(files, new CompileStatusNotification(){
-										public void finished(boolean aborted, int errors, int warnings, final CompileContext compileContext){
-											if(errors == 0){
-												VirtualFile[] outputDirectories = cme.getOutputRoots(true);
-												if(outputDirectories != null){
-													result[0] = findClassFile(outputDirectories, psiFile);
-												}
-											}
-											semaphore.release();
-										}
-									});
-								}
-							});
-						}
-						try{
-							semaphore.acquire();
-						}catch(InterruptedException e1){
-							result[0] = null;
-						}
-						runAsmDecode(project, result[0]);
+					if(outputDirectories != null && compilerManager.isUpToDate(compileScope)){
+						application.invokeLater(() -> {
+							result[0] = findClassFile(outputDirectories, psiFile);
+							semaphore.release();
+						});
+					}else{
+						application.invokeLater(() -> compilerManager.compile(files, (aborted, errors, warnings, compileContext) -> {
+							if(errors == 0){
+								VirtualFile[] outputDirectories1 = cme.getOutputRoots(true);
+								result[0] = findClassFile(outputDirectories1, psiFile);
+							}
+							semaphore.release();
+						}));
 					}
+					try{
+						semaphore.acquire();
+					}catch(InterruptedException e1){
+						result[0] = null;
+					}
+					runAsmDecode(project, result[0]);
 				});
 			}
 		}
 	}
 	
 	public VirtualFile findClassFile(final VirtualFile[] outputDirectories, final PsiFile psiFile){
-		return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
+		return ApplicationManager.getApplication().runReadAction(new Computable<>(){
 			public VirtualFile compute(){
-				if(outputDirectories != null && psiFile instanceof PsiClassOwner){
+				if(outputDirectories != null && psiFile instanceof PsiClassOwner psiJavaFile){
 					FileEditor editor      = FileEditorManager.getInstance(psiFile.getProject()).getSelectedEditor(psiFile.getVirtualFile());
-					int        caretOffset = editor == null? -1 : ((PsiAwareTextEditorImpl)editor).getEditor().getCaretModel().getOffset();
+					int        caretOffset = editor == null? -1 : ((TextEditor)editor).getEditor().getCaretModel().getOffset();
 					if(caretOffset>=0){
 						PsiClass psiClass = findClassAtCaret(psiFile, caretOffset);
 						if(psiClass != null){
 							return getClassFile(psiClass);
 						}
 					}
-					PsiClassOwner psiJavaFile = (PsiClassOwner)psiFile;
 					for(PsiClass psiClass : psiJavaFile.getClasses()){
 						final VirtualFile file = getClassFile(psiClass);
 						if(file != null){
@@ -264,7 +252,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 		ApplicationManager.getApplication().executeOnPooledThread(() -> {
 			StringWriter stringWriter = new StringWriter();
 			ClassVisitor visitor      = new TraceClassVisitor(new PrintWriter(stringWriter));
-			ClassReader  reader       = null;
+			ClassReader  reader;
 			try{
 				file.refresh(false, false);
 				reader = new ClassReader(file.contentsToByteArray());
@@ -308,9 +296,9 @@ public class ShowBytecodeOutlineAction extends AnAction{
 	 */
 	private void updateToolWindowContents(final Project project, final VirtualFile file, String byteCodeOutline, String asmified, String groovified){
 		if(file == null){
-			BytecodeOutline.getInstance(project).setCode(file, "");
-			BytecodeASMified.getInstance(project).setCode(file, "");
-			GroovifiedView.getInstance(project).setCode(file, "");
+			BytecodeOutline.getInstance(project).setCode(null, "");
+			BytecodeASMified.getInstance(project).setCode(null, "");
+			GroovifiedView.getInstance(project).setCode(null, "");
 			ApplicationManager.getApplication().invokeLater(() -> {
 				Balloon balloon = JBPopupFactory.getInstance()
 				                                .createHtmlTextBalloonBuilder(Constants.NO_CLASS_FOUND, null, LightColors.RED, null)

@@ -22,11 +22,8 @@ package org.objectweb.asm.idea;
  * User: cedric
  * Date: 18/01/11
  * Time: 06:58
- */
-
-/**
  * Constants used in various places of the code.
  */
 public abstract class Constants{
-	final static String NO_CLASS_FOUND = "Couldn't generate bytecode view, no .class file found";
+	static final String NO_CLASS_FOUND = "Couldn't generate bytecode view, no .class file found";
 }

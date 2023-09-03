@@ -62,8 +62,7 @@ public class ASMPluginConfiguration{
 		if(skipFramesCheckBox.isSelected() != data.isSkipFrames()) return true;
 		if(skipCodeCheckBox.isSelected() != data.isSkipCode()) return true;
 		if(expandFramesCheckBox.isSelected() != data.isExpandFrames()) return true;
-		if(!groovyCodeStyleComboBox.getSelectedItem().equals(data.getCodeStyle())) return true;
-		return false;
+		return !groovyCodeStyleComboBox.getSelectedItem().equals(data.getCodeStyle());
 	}
 	
 	private void createUIComponents(){
@@ -73,7 +72,7 @@ public class ASMPluginConfiguration{
 	}
 	
 	private static class GroovyCodeStyleCellRenderer implements ListCellRenderer<GroovyCodeStyle>{
-		private EnumMap<GroovyCodeStyle, JLabel> labels;
+		private final EnumMap<GroovyCodeStyle, JLabel> labels;
 		
 		private GroovyCodeStyleCellRenderer(){
 			labels = new EnumMap<GroovyCodeStyle, JLabel>(GroovyCodeStyle.class);

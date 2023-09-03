@@ -47,10 +47,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
@@ -61,7 +61,7 @@ import java.util.Map;
  * @author Thiakil (modified from OW file October 2021)
  */
 // DontCheck(AbbreviationAsWordInName): can't be renamed (for backward binary compatibility).
-public class CustomASMifier extends Printer{
+public final class CustomASMifier extends Printer{
 	
 	/**
 	 * The help message shown when command line arguments are incorrect.
@@ -98,56 +98,42 @@ public class CustomASMifier extends Printer{
 	private static final String NEW_OBJECT_ARRAY    = ", new Object[] {";
 	private static final String VISIT_END           = ".visitEnd();\n";
 	
-	private static final List<String> FRAME_TYPES =
-		Collections.unmodifiableList(
-			Arrays.asList(
-				"Opcodes.TOP",
-				"Opcodes.INTEGER",
-				"Opcodes.FLOAT",
-				"Opcodes.DOUBLE",
-				"Opcodes.LONG",
-				"Opcodes.NULL",
-				"Opcodes.UNINITIALIZED_THIS"));
+	private static final List<String> FRAME_TYPES = List.of(
+		"Opcodes.TOP",
+		"Opcodes.INTEGER",
+		"Opcodes.FLOAT",
+		"Opcodes.DOUBLE",
+		"Opcodes.LONG",
+		"Opcodes.NULL",
+		"Opcodes.UNINITIALIZED_THIS"
+	);
 	
-	private static final Map<Integer, String> CLASS_VERSIONS;
+	private static final Map<Integer, String> CLASS_VERSIONS =
+		Arrays.stream(Opcodes.class.getFields())
+		      .filter(f -> f.getName().startsWith("V") && f.getType() == int.class)
+		      .map(f -> {
+			      try{
+				      return Map.entry((Integer)f.get(null), f.getName());
+			      }catch(IllegalAccessException e){ throw new RuntimeException(e); }
+		      })
+		      .filter(e -> e.getKey()>0)
+		      .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 	
-	static{
-		HashMap<Integer, String> classVersions = new HashMap<>();
-		classVersions.put(Opcodes.V1_1, "V1_1");
-		classVersions.put(Opcodes.V1_2, "V1_2");
-		classVersions.put(Opcodes.V1_3, "V1_3");
-		classVersions.put(Opcodes.V1_4, "V1_4");
-		classVersions.put(Opcodes.V1_5, "V1_5");
-		classVersions.put(Opcodes.V1_6, "V1_6");
-		classVersions.put(Opcodes.V1_7, "V1_7");
-		classVersions.put(Opcodes.V1_8, "V1_8");
-		classVersions.put(Opcodes.V9, "V9");
-		classVersions.put(Opcodes.V10, "V10");
-		classVersions.put(Opcodes.V11, "V11");
-		classVersions.put(Opcodes.V12, "V12");
-		classVersions.put(Opcodes.V13, "V13");
-		classVersions.put(Opcodes.V14, "V14");
-		classVersions.put(Opcodes.V15, "V15");
-		classVersions.put(Opcodes.V16, "V16");
-		classVersions.put(Opcodes.V17, "V17");
-		classVersions.put(Opcodes.V18, "V18");
-		CLASS_VERSIONS = Collections.unmodifiableMap(classVersions);
-	}
 	
 	/**
 	 * The name of the visitor variable in the produced code.
 	 */
-	protected final String name;
+	private final String name;
 	
 	/**
 	 * The identifier of the annotation visitor variable in the produced code.
 	 */
-	protected final int id;
+	private final int id;
 	
 	/**
 	 * The name of the Label variables in the produced code.
 	 */
-	protected Map<Label, String> labelNames;
+	private Map<Label, String> labelNames;
 	
 	/**
 	 * Constructs a new {@link CustomASMifier}. <i>Subclasses must not use this constructor</i>. Instead,
@@ -157,9 +143,6 @@ public class CustomASMifier extends Printer{
 	 */
 	public CustomASMifier(){
 		this(/* latest api = */ Opcodes.ASM9, "classWriter", 0);
-		if(getClass() != CustomASMifier.class){
-			throw new IllegalStateException();
-		}
 	}
 	
 	/**
@@ -171,7 +154,7 @@ public class CustomASMifier extends Printer{
 	 * @param visitorVariableName the name of the visitor variable in the produced code.
 	 * @param annotationVisitorId identifier of the annotation visitor variable in the produced code.
 	 */
-	protected CustomASMifier(
+	private CustomASMifier(
 		final int api, final String visitorVariableName, final int annotationVisitorId){
 		super(api);
 		this.name = visitorVariableName;
@@ -187,21 +170,8 @@ public class CustomASMifier extends Printer{
 	 * @throws IOException if the class cannot be found, or if an IOException occurs.
 	 */
 	public static void main(final String[] args) throws IOException{
-		main(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true));
-	}
-	
-	/**
-	 * Prints the ASM source code to generate the given class to the given output.
-	 *
-	 * <p>Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
-	 *
-	 * @param args   the command line arguments.
-	 * @param output where to print the result.
-	 * @param logger where to log errors.
-	 * @throws IOException if the class cannot be found, or if an IOException occurs.
-	 */
-	static void main(final String[] args, final PrintWriter output, final PrintWriter logger)
-		throws IOException{
+		var output = new PrintWriter(System.out, true);
+		var logger = new PrintWriter(System.err, true);
 		if(args.length<1
 		   || args.length>2
 		   || ((args[0].equals("-debug") || args[0].equals("-nodebug")) && args.length != 2)){
@@ -209,7 +179,7 @@ public class CustomASMifier extends Printer{
 			return;
 		}
 		
-		TraceClassVisitor traceClassVisitor = new TraceClassVisitor(null, new CustomASMifier(), output);
+		var traceClassVisitor = new TraceClassVisitor(null, new CustomASMifier(), output);
 		
 		String className;
 		int    parsingOptions;
@@ -246,9 +216,8 @@ public class CustomASMifier extends Printer{
 		final String superName,
 		final String[] interfaces){
 		String simpleName;
-		if(name == null){
-			simpleName = "module-info";
-		}else{
+		if(name == null) simpleName = "module-info";
+		else{
 			int lastSlashIndex = name.lastIndexOf('/');
 			if(lastSlashIndex == -1){
 				simpleName = name;
@@ -808,22 +777,22 @@ public class CustomASMifier extends Printer{
 		final Object[] stack){
 		stringBuilder.setLength(0);
 		switch(type){
-			case Opcodes.F_NEW:
-			case Opcodes.F_FULL:
+			case Opcodes.F_NEW, Opcodes.F_FULL -> {
 				declareFrameTypes(numLocal, local);
 				declareFrameTypes(numStack, stack);
-				if(type == Opcodes.F_NEW){
-					stringBuilder.append(name).append(".visitFrame(Opcodes.F_NEW, ");
-				}else{
-					stringBuilder.append(name).append(".visitFrame(Opcodes.F_FULL, ");
-				}
+				
+				stringBuilder.append(name).append(".visitFrame(Opcodes.").append(switch(type){
+					case Opcodes.F_NEW -> "F_NEW";
+					case Opcodes.F_FULL -> "F_FULL";
+					default -> throw new RuntimeException();
+				}).append(", ");
 				stringBuilder.append(numLocal).append(NEW_OBJECT_ARRAY);
 				appendFrameTypes(numLocal, local);
 				stringBuilder.append("}, ").append(numStack).append(NEW_OBJECT_ARRAY);
 				appendFrameTypes(numStack, stack);
 				stringBuilder.append('}');
-				break;
-			case Opcodes.F_APPEND:
+			}
+			case Opcodes.F_APPEND -> {
 				declareFrameTypes(numLocal, local);
 				stringBuilder
 					.append(name)
@@ -832,27 +801,21 @@ public class CustomASMifier extends Printer{
 					.append(NEW_OBJECT_ARRAY);
 				appendFrameTypes(numLocal, local);
 				stringBuilder.append("}, 0, null");
-				break;
-			case Opcodes.F_CHOP:
-				stringBuilder
-					.append(name)
-					.append(".visitFrame(Opcodes.F_CHOP,")
-					.append(numLocal)
-					.append(", null, 0, null");
-				break;
-			case Opcodes.F_SAME:
-				stringBuilder.append(name).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
-				break;
-			case Opcodes.F_SAME1:
+			}
+			case Opcodes.F_CHOP -> stringBuilder.append(name)
+			                                    .append(".visitFrame(Opcodes.F_CHOP,")
+			                                    .append(numLocal)
+			                                    .append(", null, 0, null");
+			case Opcodes.F_SAME -> stringBuilder.append(name).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
+			case Opcodes.F_SAME1 -> {
 				declareFrameTypes(1, stack);
 				stringBuilder
 					.append(name)
 					.append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
 				appendFrameTypes(1, stack);
 				stringBuilder.append('}');
-				break;
-			default:
-				throw new IllegalArgumentException();
+			}
+			default -> throw new IllegalArgumentException();
 		}
 		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
@@ -1316,7 +1279,7 @@ public class CustomASMifier extends Printer{
 	 * @return a new {@link ASMifier}.
 	 */
 	// DontCheck(AbbreviationAsWordInName): can't be renamed (for backward binary compatibility).
-	protected CustomASMifier createASMifier(
+	private CustomASMifier createASMifier(
 		final String visitorVariableName, final int annotationVisitorId){
 		return new CustomASMifier(api, visitorVariableName, annotationVisitorId);
 	}
@@ -1494,28 +1457,23 @@ public class CustomASMifier extends Printer{
 	 *              {@link Character}, {@link Integer}, {@link Float}, {@link Long} or {@link Double} object,
 	 *              or an array of primitive values. May be {@literal null}.
 	 */
-	protected void appendConstant(final Object value){
+	private void appendConstant(final Object value){
 		if(value == null){
 			stringBuilder.append("null");
-		}else if(value instanceof String){
-			appendString(stringBuilder, (String)value);
-		}else if(value instanceof Type){
-			stringBuilder.append("Type.getType(\"");
-			stringBuilder.append(((Type)value).getDescriptor());
-			stringBuilder.append("\")");
-		}else if(value instanceof Handle){
-			stringBuilder.append("new Handle(");
-			Handle handle = (Handle)value;
-			stringBuilder.append("Opcodes.").append(HANDLE_TAG[handle.getTag()]).append(", \"");
-			stringBuilder.append(handle.getOwner()).append(COMMA);
-			stringBuilder.append(handle.getName()).append(COMMA);
-			stringBuilder.append(handle.getDesc()).append("\", ");
-			stringBuilder.append(handle.isInterface()).append(")");
-		}else if(value instanceof ConstantDynamic){
-			stringBuilder.append("new ConstantDynamic(\"");
-			ConstantDynamic constantDynamic = (ConstantDynamic)value;
-			stringBuilder.append(constantDynamic.getName()).append(COMMA);
-			stringBuilder.append(constantDynamic.getDescriptor()).append("\", ");
+		}else if(value instanceof String v) appendString(stringBuilder, v);
+		else if(value instanceof Type v) stringBuilder.append("Type.getType(\"").append(v.getDescriptor()).append("\")");
+		else if(value instanceof Handle handle){
+			stringBuilder.append("new Handle(")
+			             .append("Opcodes.").append(HANDLE_TAG[handle.getTag()])
+			             .append(", \"").append(handle.getOwner())
+			             .append(COMMA).append(handle.getName())
+			             .append(COMMA).append(handle.getDesc())
+			             .append("\", ").append(handle.isInterface())
+			             .append(")");
+		}else if(value instanceof ConstantDynamic constantDynamic){
+			stringBuilder.append("new ConstantDynamic(\"")
+			             .append(constantDynamic.getName()).append(COMMA)
+			             .append(constantDynamic.getDescriptor()).append("\", ");
 			appendConstant(constantDynamic.getBootstrapMethod());
 			stringBuilder.append(NEW_OBJECT_ARRAY);
 			int bootstrapMethodArgumentCount = constantDynamic.getBootstrapMethodArgumentCount();
@@ -1526,76 +1484,68 @@ public class CustomASMifier extends Printer{
 				}
 			}
 			stringBuilder.append("})");
-		}else if(value instanceof Byte){
-			stringBuilder.append("new Byte((byte)").append(value).append(')');
-		}else if(value instanceof Boolean){
-			stringBuilder.append(((Boolean)value).booleanValue()? "Boolean.TRUE" : "Boolean.FALSE");
-		}else if(value instanceof Short){
-			stringBuilder.append("new Short((short)").append(value).append(')');
-		}else if(value instanceof Character){
+		}else if(value instanceof Byte v){
+			stringBuilder.append("new Byte((byte)").append(v).append(')');
+		}else if(value instanceof Boolean v){
+			stringBuilder.append(v? "Boolean.TRUE" : "Boolean.FALSE");
+		}else if(value instanceof Short v){
+			stringBuilder.append("new Short((short)").append(v).append(')');
+		}else if(value instanceof Character v){
 			stringBuilder
 				.append("new Character((char)")
-				.append((int)((Character)value).charValue())
+				.append((int)v)
 				.append(')');
-		}else if(value instanceof Integer){
-			stringBuilder.append("new Integer(").append(value).append(')');
-		}else if(value instanceof Float){
-			stringBuilder.append("new Float(\"").append(value).append("\")");
-		}else if(value instanceof Long){
-			stringBuilder.append("new Long(").append(value).append("L)");
-		}else if(value instanceof Double){
-			stringBuilder.append("new Double(\"").append(value).append("\")");
-		}else if(value instanceof byte[]){
-			byte[] byteArray = (byte[])value;
+		}else if(value instanceof Integer v){
+			stringBuilder.append("new Integer(").append(v).append(')');
+		}else if(value instanceof Float v){
+			stringBuilder.append("new Float(\"").append(v).append("\")");
+		}else if(value instanceof Long v){
+			stringBuilder.append("new Long(").append(v).append("L)");
+		}else if(value instanceof Double v){
+			stringBuilder.append("new Double(\"").append(v).append("\")");
+		}else if(value instanceof byte[] byteArray){
 			stringBuilder.append("new byte[] {");
 			for(int i = 0; i<byteArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(byteArray[i]);
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof boolean[]){
-			boolean[] booleanArray = (boolean[])value;
+		}else if(value instanceof boolean[] booleanArray){
 			stringBuilder.append("new boolean[] {");
 			for(int i = 0; i<booleanArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(booleanArray[i]);
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof short[]){
-			short[] shortArray = (short[])value;
+		}else if(value instanceof short[] shortArray){
 			stringBuilder.append("new short[] {");
 			for(int i = 0; i<shortArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append("(short)").append(shortArray[i]);
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof char[]){
-			char[] charArray = (char[])value;
+		}else if(value instanceof char[] charArray){
 			stringBuilder.append("new char[] {");
 			for(int i = 0; i<charArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append("(char)").append((int)charArray[i]);
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof int[]){
-			int[] intArray = (int[])value;
+		}else if(value instanceof int[] intArray){
 			stringBuilder.append("new int[] {");
 			for(int i = 0; i<intArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(intArray[i]);
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof long[]){
-			long[] longArray = (long[])value;
+		}else if(value instanceof long[] longArray){
 			stringBuilder.append("new long[] {");
 			for(int i = 0; i<longArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(longArray[i]).append('L');
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof float[]){
-			float[] floatArray = (float[])value;
+		}else if(value instanceof float[] floatArray){
 			stringBuilder.append("new float[] {");
 			for(int i = 0; i<floatArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(floatArray[i]).append('f');
 			}
 			stringBuilder.append('}');
-		}else if(value instanceof double[]){
-			double[] doubleArray = (double[])value;
+		}else if(value instanceof double[] doubleArray){
 			stringBuilder.append("new double[] {");
 			for(int i = 0; i<doubleArray.length; i++){
 				stringBuilder.append(i == 0? "" : ",").append(doubleArray[i]).append('d');
@@ -1634,7 +1584,7 @@ public class CustomASMifier extends Printer{
 			if(frameTypes[i] instanceof String){
 				appendConstant(frameTypes[i]);
 			}else if(frameTypes[i] instanceof Integer){
-				stringBuilder.append(FRAME_TYPES.get(((Integer)frameTypes[i]).intValue()));
+				stringBuilder.append(FRAME_TYPES.get((Integer)frameTypes[i]));
 			}else{
 				appendLabel((Label)frameTypes[i]);
 			}
@@ -1648,7 +1598,7 @@ public class CustomASMifier extends Printer{
 	 *
 	 * @param label a label.
 	 */
-	protected void declareLabel(final Label label){
+	private void declareLabel(final Label label){
 		if(labelNames == null){
 			labelNames = new HashMap<>();
 		}
@@ -1667,7 +1617,7 @@ public class CustomASMifier extends Printer{
 	 *
 	 * @param label a label.
 	 */
-	protected void appendLabel(final Label label){
+	private void appendLabel(final Label label){
 		stringBuilder.append(labelNames.get(label));
 	}
 }

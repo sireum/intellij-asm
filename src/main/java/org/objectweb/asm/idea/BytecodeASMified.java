@@ -26,9 +26,6 @@ import com.intellij.openapi.project.Project;
  * User: cedric
  * Date: 07/01/11
  * Time: 17:07
- */
-
-/**
  * ASMified code view.
  */
 public class BytecodeASMified extends ACodeView{

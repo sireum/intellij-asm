@@ -45,7 +45,7 @@ import java.util.List;
  */
 public class GroovifiedTextifier extends Textifier{
 	
-	private final static String[] GROOVY_DEFAULT_IMPORTS = {
+	private static final String[] GROOVY_DEFAULT_IMPORTS = {
 		"java.io.",
 		"java.lang.",
 		"java.net.",
@@ -54,7 +54,7 @@ public class GroovifiedTextifier extends Textifier{
 		"groovy.util."
 	};
 	
-	private final static String[] ATYPES;
+	private static final String[] ATYPES;
 	
 	static{
 		ATYPES = new String[12];
@@ -341,14 +341,9 @@ public class GroovifiedTextifier extends Textifier{
 		 */
 		protected void appendLabel(final Label l){
 			if(labelNames == null){
-				labelNames = new HashMap<org.objectweb.asm.Label, String>();
+				labelNames = new HashMap<>();
 			}
-			String name = (String)labelNames.get(l);
-			if(name == null){
-				name = "l" + labelNames.size();
-				labelNames.put(l, name);
-			}
-			stringBuilder.append(name);
+			stringBuilder.append(labelNames.computeIfAbsent(l, k -> "l" + labelNames.size()));
 		}
 		
 		public void visitLabel(final Label label){
@@ -433,7 +428,7 @@ public class GroovifiedTextifier extends Textifier{
 			if(isLegacy()){
 				stringBuilder.append('\'');
 				appendDescriptor(FIELD_DESCRIPTOR, desc);
-				stringBuilder.append("\'");
+				stringBuilder.append("'");
 			}else{
 				stringBuilder.append(groovyClassName(Type.getType(desc).getClassName()));
 			}
@@ -463,7 +458,7 @@ public class GroovifiedTextifier extends Textifier{
 					stringBuilder.append(groovyClassName(type.replace('/', '.')));
 				}
 			}else{
-				appendDescriptor(INTERNAL_NAME, type);
+				appendDescriptor(INTERNAL_NAME, null);
 			}
 			stringBuilder.append('\n');
 			text.add(stringBuilder.toString());

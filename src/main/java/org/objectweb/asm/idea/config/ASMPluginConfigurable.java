@@ -14,9 +14,9 @@ import javax.swing.*;
  */
 public class ASMPluginConfigurable implements Configurable{
 	
-	private ASMPluginConfiguration configDialog;
-	private Project                project;
-	private ASMPluginComponent     projectComponent;
+	private       ASMPluginConfiguration configDialog;
+	private final Project                project;
+	private final ASMPluginComponent     projectComponent;
 	
 	public ASMPluginConfigurable(final Project project){
 		this.project = project;

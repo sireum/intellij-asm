@@ -45,11 +45,11 @@ import org.jdom.Element;
 )
 public class ASMPluginComponent implements PersistentStateComponent<Element>{
 	
-	private boolean         skipFrames   = false;
-	private boolean         skipDebug    = false;
-	private boolean         skipCode     = false;
-	private boolean         expandFrames = false;
-	private GroovyCodeStyle codeStyle    = GroovyCodeStyle.LEGACY;
+	private boolean         skipFrames;
+	private boolean         skipDebug;
+	private boolean         skipCode;
+	private boolean         expandFrames;
+	private GroovyCodeStyle codeStyle = GroovyCodeStyle.LEGACY;
 	
 	public ASMPluginComponent(final Project project){
 	}

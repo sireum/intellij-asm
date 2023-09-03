@@ -17,18 +17,13 @@
  */
 
 package org.objectweb.asm.idea;
-/**
- * Created by IntelliJ IDEA.
- * User: cedric
- * Date: 07/01/11
- * Time: 22:18
- */
 
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.requests.DiffRequest;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -51,6 +46,10 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 
 /**
+ * Created by IntelliJ IDEA.
+ * User: cedric
+ * Date: 07/01/11
+ * Time: 22:18
  * Base class for editors which displays bytecode or ASMified code.
  *
  * @author Cédric Champeau
@@ -125,7 +124,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		return new ShowDiffAction();
 	}
 	
-	private class ShowSettingsAction extends AnAction{
+	private final class ShowSettingsAction extends AnAction{
 		
 		private ShowSettingsAction(){
 			super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png", ShowSettingsAction.class));
@@ -137,7 +136,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		}
 		
 		@Override
-		public void actionPerformed(final AnActionEvent e){
+		public void actionPerformed(final @NotNull AnActionEvent e){
 			ShowSettingsUtil.getInstance().showSettingsDialog(project, ASMPluginConfigurable.class);
 		}
 	}
@@ -145,9 +144,14 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 	private class ShowDiffAction extends AnAction{
 		
 		public ShowDiffAction(){
-			super("Show differences",
+			super("Show Differences",
 			      "Shows differences from the previous version of bytecode for this file",
 			      IconLoader.getIcon("/actions/diffWithCurrent.png", ShowDiffAction.class));
+		}
+		
+		@Override
+		public @NotNull ActionUpdateThread getActionUpdateThread(){
+			return ActionUpdateThread.EDT;
 		}
 		
 		@Override
@@ -161,7 +165,7 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		}
 		
 		@Override
-		public void actionPerformed(final AnActionEvent e){
+		public void actionPerformed(final @NotNull AnActionEvent e){
 			DiffManager.getInstance().showDiff(project, new DiffRequest(){
 				@Override
 				public @NlsContexts.DialogTitle @NotNull String getTitle(){
