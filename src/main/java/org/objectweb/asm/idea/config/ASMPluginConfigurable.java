@@ -29,10 +29,6 @@ public class ASMPluginConfigurable implements Configurable{
 		return "ASM Bytecode plugin";
 	}
 	
-	public Icon getIcon(){
-		return IconLoader.getIcon("/images/asm.gif");
-	}
-	
 	@Override
 	public String getHelpTopic(){
 		return null;
