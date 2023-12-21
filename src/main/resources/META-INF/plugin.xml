@@ -2,13 +2,17 @@
     <description>Displays bytecode for Java classes and ASMified code which will help you in your class generation.</description>
     <vendor>Ben Donnelly</vendor>
 
-    <id>gh.umaaz.asm.viewer</id>
-    <name>ASM Viewer</name>
+    <id>org.sireum.intellij.asm</id>
+    <name>ASM Bytecode Viewer</name>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
 
     <change-notes><![CDATA[
+        <b>Version 9.6</b>
+        <ul>
+            <li>Update ASM version to 9.6</li>
+        </ul>
         <b>Version 9.5.2</b>
         <ul>
             <li>Update to idea 233<li>
