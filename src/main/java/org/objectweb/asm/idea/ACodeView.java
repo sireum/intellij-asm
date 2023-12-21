@@ -21,6 +21,7 @@ package org.objectweb.asm.idea;
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -37,7 +38,6 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.PopupHandler;
 import org.jetbrains.annotations.NotNull;
@@ -126,8 +126,11 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 	private final class ShowSettingsAction extends AnAction{
 		
 		private ShowSettingsAction(){
-			super("Settings", "Show settings for ASM plugin", IconLoader.getIcon("/general/projectSettings.png", ShowSettingsAction.class));
+			super("Settings", "Show settings for ASM plugin",
+			      AllIcons.General.Settings
+			);
 		}
+		
 		
 		@Override
 		public boolean displayTextInToolbar(){
@@ -145,7 +148,8 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		public ShowDiffAction(){
 			super("Show Differences",
 			      "Shows differences from the previous version of bytecode for this file",
-			      IconLoader.getIcon("/actions/diffWithCurrent.png", ShowDiffAction.class));
+			      AllIcons.Actions.Diff
+			);
 		}
 		
 		@Override
