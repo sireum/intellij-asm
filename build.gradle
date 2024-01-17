@@ -20,8 +20,9 @@ configurations {
 }
 
 dependencies {
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version'
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version'
+
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:'+junit_jupiter_version
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:'+junit_jupiter_version
 
 	implementation group: 'org.ow2.asm', name: 'asm', version: '9.5'
 
