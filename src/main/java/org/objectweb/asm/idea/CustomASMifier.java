@@ -29,6 +29,7 @@
  */
 package org.objectweb.asm.idea;
 
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ConstantDynamic;
@@ -735,13 +736,7 @@ public final class CustomASMifier extends Printer{
 			.append(".visitParameterAnnotation(")
 			.append(parameter)
 			.append(", ");
-		appendConstant(descriptor);
-		stringBuilder.append(", ").append(visible).append(");\n");
-		text.add(stringBuilder.toString());
-		CustomASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
-		text.add(asmifier.getText());
-		text.add("}\n");
-		return asmifier;
+		return getCustomASMifier(descriptor, visible);
 	}
 	
 	@Override
@@ -1090,13 +1085,7 @@ public final class CustomASMifier extends Printer{
 			stringBuilder.append(i == 0? " " : ", ").append(index[i]);
 		}
 		stringBuilder.append(" }, ");
-		appendConstant(descriptor);
-		stringBuilder.append(", ").append(visible).append(");\n");
-		text.add(stringBuilder.toString());
-		CustomASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
-		text.add(asmifier.getText());
-		text.add("}\n");
-		return asmifier;
+		return getCustomASMifier(descriptor, visible);
 	}
 	
 	@Override
@@ -1145,13 +1134,7 @@ public final class CustomASMifier extends Printer{
 			.append(ANNOTATION_VISITOR0)
 			.append(name)
 			.append(".visitAnnotation(");
-		appendConstant(descriptor);
-		stringBuilder.append(", ").append(visible).append(");\n");
-		text.add(stringBuilder.toString());
-		CustomASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
-		text.add(asmifier.getText());
-		text.add("}\n");
-		return asmifier;
+		return getCustomASMifier(descriptor, visible);
 	}
 	
 	/**
@@ -1199,6 +1182,10 @@ public final class CustomASMifier extends Printer{
 		}else{
 			stringBuilder.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
 		}
+		return getCustomASMifier(descriptor, visible);
+	}
+	@NotNull
+	private CustomASMifier getCustomASMifier(String descriptor, boolean visible){
 		appendConstant(descriptor);
 		stringBuilder.append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
