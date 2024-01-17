@@ -12,6 +12,8 @@
 		<b>Version 0.4.3</b>
 		<ul>
 			<li>Updated ASM to 9.6</li>
+			<li>Fixed a NPE error</li>
+			<li>Improved speed a bit probably</li>
 		</ul>
 		<b>Version 0.4.2</b>
 		<ul>
