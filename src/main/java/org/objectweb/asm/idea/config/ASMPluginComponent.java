@@ -131,6 +131,16 @@ public class ASMPluginComponent implements PersistentStateComponent<Element>{
 		}
 	}
 	
+	@Override
+	public String toString(){
+		return "ASMPluginComponent{" +
+		       "skipFrames=" + skipFrames +
+		       ", skipDebug=" + skipDebug +
+		       ", skipCode=" + skipCode +
+		       ", expandFrames=" + expandFrames +
+		       ", codeStyle=" + codeStyle +
+		       '}';
+	}
 }
 
 

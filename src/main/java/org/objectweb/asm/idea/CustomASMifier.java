@@ -678,7 +678,7 @@ public final class CustomASMifier extends Printer{
 	public void visitParameter(final String parameterName, final int access){
 		stringBuilder.setLength(0);
 		stringBuilder.append(name).append(".visitParameter(");
-		appendString(stringBuilder, parameterName);
+		appendString(stringBuilder, parameterName == null? "noNameParm" : parameterName);
 		stringBuilder.append(", ");
 		appendAccessFlags(access);
 		text.add(stringBuilder.append(");\n").toString());

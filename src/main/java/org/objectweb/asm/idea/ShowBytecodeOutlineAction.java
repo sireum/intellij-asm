@@ -68,6 +68,9 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
 
 
@@ -96,7 +99,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 	
 	@Override
 	public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread(){
-		return ActionUpdateThread.EDT;
+		return ActionUpdateThread.BGT;
 	}
 	
 	@Override
@@ -241,51 +244,102 @@ public class ShowBytecodeOutlineAction extends AnAction{
 		});
 	}
 	
-	/**
-	 * Reads the .class file, processes it through the ASM TraceVisitor and ASMifier
-	 */
 	public void runAsmDecode(final Project project, final VirtualFile file){
 		if(file == null){
 			ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> updateToolWindowContents(project, file, null, null, null)));
 			return;
 		}
-		ApplicationManager.getApplication().executeOnPooledThread(() -> {
-			StringWriter stringWriter = new StringWriter();
-			ClassVisitor visitor      = new TraceClassVisitor(new PrintWriter(stringWriter));
-			ClassReader  reader;
-			try{
-				file.refresh(false, false);
-				reader = new ClassReader(file.contentsToByteArray());
-			}catch(IOException e){
-				return;
-			}
-			int                      flags  = 0;
-			final ASMPluginComponent config = project.getService(ASMPluginComponent.class);
-			if(config.isSkipDebug()) flags = flags|ClassReader.SKIP_DEBUG;
-			if(config.isSkipFrames()) flags = flags|ClassReader.SKIP_FRAMES;
-			if(config.isExpandFrames()) flags = flags|ClassReader.EXPAND_FRAMES;
-			if(config.isSkipCode()) flags = flags|ClassReader.SKIP_CODE;
-			
-			reader.accept(visitor, flags);
-			String byteCodeOutline = stringWriter.toString();
-			
-			stringWriter.getBuffer().setLength(0);
-			reader.accept(new TraceClassVisitor(null, new GroovifiedTextifier(config.getCodeStyle()), new PrintWriter(stringWriter)), ClassReader.SKIP_FRAMES|ClassReader.SKIP_DEBUG);
-			String groovified = stringWriter.toString();
-			
-			stringWriter.getBuffer().setLength(0);
-			reader.accept(new TraceClassVisitor(null,
-			                                    new CustomASMifier(),
-			                                    new PrintWriter(stringWriter)), flags);
-			ApplicationManager.getApplication().invokeLater(() ->
-				                                                ApplicationManager.getApplication().runWriteAction(() -> {
-					                                                PsiFile psiFile = PsiFileFactory.getInstance(project).createFileFromText("asm.java", JavaFileType.INSTANCE, stringWriter.toString());
-					                                                CodeStyleManager.getInstance(project).reformatText(psiFile, 0, psiFile.getTextLength());
-					                                                
-					                                                updateToolWindowContents(project, file, byteCodeOutline, psiFile.getText(), groovified);
-				                                                })
+		final ASMPluginComponent config = project.getService(ASMPluginComponent.class);
+		
+		
+		Executor exec = r -> {
+			ApplicationManager.getApplication().invokeLater(
+				() -> {
+					ApplicationManager.getApplication().runWriteAction(() -> {
+						r.run();
+						ToolWindowManager.getInstance(project).getToolWindow("ASM").activate(null);
+					});
+				}
 			);
-		});
+		};
+		
+		ClassReader reader;
+		try{
+			file.refresh(false, false);
+			reader = new ClassReader(file.contentsToByteArray());
+		}catch(IOException e){
+			return;
+		}
+		
+		CompletableFuture
+			.supplyAsync(() -> {
+				var          stringWriter = new StringWriter();
+				ClassVisitor visitor      = new TraceClassVisitor(new PrintWriter(stringWriter));
+				reader.accept(visitor, computeFlags(config));
+				return stringWriter.toString();
+			})
+			.exceptionally(e -> mapVisitErr(e, config))
+			.thenAcceptAsync(code -> BytecodeOutline.getInstance(project).setCode(file, code), exec);
+		
+		CompletableFuture
+			.supplyAsync(() -> {
+				var stringWriter = new StringWriter();
+				reader.accept(
+					new TraceClassVisitor(
+						null,
+						new CustomASMifier(),
+						new PrintWriter(stringWriter)
+					),
+					computeFlags(config)
+				);
+				return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+					var asmfiedFile = PsiFileFactory.getInstance(project).createFileFromText(
+						"asm.java", JavaFileType.INSTANCE, stringWriter.toString()
+					);
+					CodeStyleManager.getInstance(project).reformatText(asmfiedFile, 0, asmfiedFile.getTextLength());
+					return asmfiedFile.getText();
+				});
+			})
+			.exceptionally(e -> mapVisitErr(e, config))
+			.thenAcceptAsync(code -> BytecodeASMified.getInstance(project).setCode(file, code), exec);
+		
+		CompletableFuture
+			.supplyAsync(() -> {
+				var stringWriter = new StringWriter();
+				reader.accept(
+					new TraceClassVisitor(
+						null,
+						new GroovifiedTextifier(config.getCodeStyle()),
+						new PrintWriter(stringWriter)
+					),
+					ClassReader.SKIP_FRAMES|ClassReader.SKIP_DEBUG
+				);
+				return stringWriter.toString();
+			})
+			.exceptionally(e -> mapVisitErr(e, config))
+			.thenAcceptAsync(code -> GroovifiedView.getInstance(project).setCode(file, code), exec);
+	}
+	
+	private String mapVisitErr(Throwable e, ASMPluginComponent config){
+		if(e instanceof CompletionException ce && ce.getCause() != null) e = ce.getCause();
+		var printw = new StringWriter();
+		e.printStackTrace(new PrintWriter(printw));
+		return "/*\n" +
+		       "Something went wrong! Try enabling a skip option in the configuration. Current config:\n" +
+		       config + "\n" +
+		       "\n" +
+		       "Stacktrace:\n" +
+		       printw.toString().replace("\r", "") + "\n" +
+		       "*/";
+	}
+	
+	private static int computeFlags(ASMPluginComponent config){
+		int flags = 0;
+		if(config.isSkipDebug()) flags = flags|ClassReader.SKIP_DEBUG;
+		if(config.isSkipFrames()) flags = flags|ClassReader.SKIP_FRAMES;
+		if(config.isExpandFrames()) flags = flags|ClassReader.EXPAND_FRAMES;
+		if(config.isSkipCode()) flags = flags|ClassReader.SKIP_CODE;
+		return flags;
 	}
 	
 	/**
