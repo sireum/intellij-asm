@@ -9,6 +9,10 @@
     <depends>com.intellij.java</depends>
 
     <change-notes><![CDATA[
+        <b>Version 9.7</b>
+        <ul>
+            <li>Update ASM version to 9.7</li>
+        </ul>
         <b>Version 9.6</b>
         <ul>
             <li>Update ASM version to 9.6</li>

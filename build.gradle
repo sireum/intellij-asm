@@ -12,7 +12,7 @@ if(System.env.VERSION != null) {
     version 'dev'
 }
 
-var asm_version = '9.6'
+var asm_version = '9.7'
 
 sourceCompatibility='17'
 
@@ -50,7 +50,6 @@ jar.dependsOn shadowJar
 
 
 var ideaSince = 233
-var ideaUntil = 233
 // this is the list of the IDES we want to support
 // IIC - IntelliJ Community
 // IIU - IntelliJ Ultimate
@@ -60,7 +59,6 @@ patchPluginXml {
     version = project.version
 
     sinceBuild = "${ideaSince}"
-    untilBuild = "${ideaUntil}.*"
 //    changeNotes = file('changeNotes.txt').text
 //    pluginDescription = file('description.txt').text
 }
