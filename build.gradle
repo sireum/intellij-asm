@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'asm.bytecode_outline.re'
-version '0.4.3'
+version '0.4.4'
 sourceCompatibility=17
 
 repositories {
@@ -24,7 +24,7 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:'+junit_jupiter_version
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:'+junit_jupiter_version
 
-	implementation group: 'org.ow2.asm', name: 'asm', version: '9.5'
+	implementation group: 'org.ow2.asm', name: 'asm', version: '9.7'
 
 	priority "org.ow2.asm:asm:$asm_version"
 	priority "org.ow2.asm:asm-commons:$asm_version"
@@ -52,7 +52,7 @@ prepareSandbox.dependsOn(shadowJar)
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-	version = '2023.3'
+	version = '2024.1'
 	plugins = ['java']
 }
 test {
