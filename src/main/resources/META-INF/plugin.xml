@@ -4,11 +4,15 @@
 		Displays bytecode for Java classes and ASMified code which will help you in your class generation.
 		Updated for newer IDEA versions.
 	</description>
-	<version>0.4.4</version>
+	<version>0.4.5</version>
 	<vendor>LapisSea / thiakil / melix</vendor>
 	<id>asm.bytecode_outline.re</id>
 	
 	<change-notes><![CDATA[
+		<b>Version 0.4.5</b>
+		<ul>
+			<li>Added plugin icon</li>
+		</ul>
 		<b>Version 0.4.4</b>
 		<ul>
 			<li>Updated ASM to 9.7</li>
