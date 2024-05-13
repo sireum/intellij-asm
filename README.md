@@ -1,6 +1,7 @@
 
 # ASM Bytecode Outline *(Rebooted)*
 ***
+[![Java CI with Gradle](https://github.com/LapisSea/asm-bytecode-intellij/actions/workflows/gradle.yml/badge.svg)](https://github.com/LapisSea/asm-bytecode-intellij/actions/workflows/gradle.yml)
 
 This is a fork of the original Intellij Plugin that has been abandoned.
 
