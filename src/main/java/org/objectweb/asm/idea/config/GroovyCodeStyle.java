@@ -17,11 +17,11 @@
  */
 
 package org.objectweb.asm.idea.config;
-/**
- * Created by IntelliJ IDEA.
- * User: cedric
- * Date: 18/01/11
- * Time: 22:37
+/*
+  Created by IntelliJ IDEA.
+  User: cedric
+  Date: 18/01/11
+  Time: 22:37
  */
 
 /**
@@ -31,7 +31,7 @@ public enum GroovyCodeStyle{
 	LEGACY("Legacy bytecode"),
 	GROOVIFIER_0_2_0("Groovified bytecode");
 	
-	String label;
+	final String label;
 	
 	GroovyCodeStyle(final String label){
 		this.label = label;

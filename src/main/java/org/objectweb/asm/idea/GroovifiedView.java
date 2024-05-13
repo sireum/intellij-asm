@@ -21,11 +21,11 @@ package org.objectweb.asm.idea;
 import com.intellij.openapi.project.Project;
 
 
-/**
- * Created by IntelliJ IDEA.
- * User: cedric
- * Date: 07/01/11
- * Time: 17:07
+/*
+  Created by IntelliJ IDEA.
+  User: cedric
+  Date: 07/01/11
+  Time: 17:07
  */
 
 /**

@@ -197,6 +197,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 	
 	public VirtualFile findClassFile(final VirtualFile[] outputDirectories, final PsiFile psiFile){
 		return ApplicationManager.getApplication().runReadAction(new Computable<>(){
+			@Override
 			public VirtualFile compute(){
 				if(outputDirectories != null && psiFile instanceof PsiClassOwner psiJavaFile){
 					FileEditor editor      = FileEditorManager.getInstance(psiFile.getProject()).getSelectedEditor(psiFile.getVirtualFile());
@@ -246,7 +247,7 @@ public class ShowBytecodeOutlineAction extends AnAction{
 	
 	public void runAsmDecode(final Project project, final VirtualFile file){
 		if(file == null){
-			ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> updateToolWindowContents(project, file, null, null, null)));
+			ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> updateToolWindowContents(project, null, null, null, null)));
 			return;
 		}
 		final ASMPluginComponent config = project.getService(ASMPluginComponent.class);

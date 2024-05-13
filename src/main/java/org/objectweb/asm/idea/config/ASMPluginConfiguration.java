@@ -24,6 +24,7 @@ import com.intellij.ui.EnumComboBoxModel;
 import javax.swing.*;
 import java.awt.Component;
 import java.util.EnumMap;
+import java.util.Objects;
 
 public class ASMPluginConfiguration{
 	protected static final String                     COMPONENT_NAME = "ASMPluginConfiguration";
@@ -62,7 +63,7 @@ public class ASMPluginConfiguration{
 		if(skipFramesCheckBox.isSelected() != data.isSkipFrames()) return true;
 		if(skipCodeCheckBox.isSelected() != data.isSkipCode()) return true;
 		if(expandFramesCheckBox.isSelected() != data.isExpandFrames()) return true;
-		return !groovyCodeStyleComboBox.getSelectedItem().equals(data.getCodeStyle());
+		return !Objects.equals(groovyCodeStyleComboBox.getSelectedItem(), data.getCodeStyle());
 	}
 	
 	private void createUIComponents(){
@@ -71,11 +72,11 @@ public class ASMPluginConfiguration{
 		groovyCodeStyleComboBox.setRenderer(new GroovyCodeStyleCellRenderer());
 	}
 	
-	private static class GroovyCodeStyleCellRenderer implements ListCellRenderer<GroovyCodeStyle>{
+	private static final class GroovyCodeStyleCellRenderer implements ListCellRenderer<GroovyCodeStyle>{
 		private final EnumMap<GroovyCodeStyle, JLabel> labels;
 		
 		private GroovyCodeStyleCellRenderer(){
-			labels = new EnumMap<GroovyCodeStyle, JLabel>(GroovyCodeStyle.class);
+			labels = new EnumMap<>(GroovyCodeStyle.class);
 			for(GroovyCodeStyle codeStyle : GroovyCodeStyle.values()){
 				labels.put(codeStyle, new JLabel(codeStyle.label));
 			}

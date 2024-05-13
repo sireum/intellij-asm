@@ -17,11 +17,11 @@
  */
 
 package org.objectweb.asm.idea.config;
-/**
- * Created by IntelliJ IDEA.
- * User: cedric
- * Date: 18/01/11
- * Time: 19:51
+/*
+  Created by IntelliJ IDEA.
+  User: cedric
+  Date: 18/01/11
+  Time: 19:51
  */
 
 import com.intellij.openapi.components.PersistentStateComponent;

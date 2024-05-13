@@ -19,16 +19,16 @@ configurations {
 }
 
 dependencies {
-
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:'+junit_jupiter_version
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:'+junit_jupiter_version
-
+	
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:' + junit_jupiter_version
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + junit_jupiter_version
+	
 	implementation group: 'org.ow2.asm', name: 'asm', version: asm_version
-
+	
 	priority "org.ow2.asm:asm:$asm_version"
 	priority "org.ow2.asm:asm-commons:$asm_version"
 	priority "org.ow2.asm:asm-util:$asm_version"
-
+	
 	//duplicated here so that IJ plugin puts them in the zip distribution
 	runtimeOnly "org.ow2.asm:asm:$asm_version"
 	runtimeOnly "org.ow2.asm:asm-commons:$asm_version"
@@ -37,7 +37,7 @@ dependencies {
 
 shadowJar {
 	configurations = [project.configurations.priority]
-	relocate ('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
+	relocate('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
 		exclude 'org.objectweb.asm.idea.**'
 	}
 	archiveClassifier.set('')

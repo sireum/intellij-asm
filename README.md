@@ -1,5 +1,5 @@
-
 # ASM Bytecode Outline *(Rebooted)*
+
 ***
 [![Java CI with Gradle](https://github.com/LapisSea/asm-bytecode-intellij/actions/workflows/gradle.yml/badge.svg)](https://github.com/LapisSea/asm-bytecode-intellij/actions/workflows/gradle.yml)
 
@@ -12,5 +12,7 @@ I am open to feature requests, but beyond this, the addon is mostly on maintenan
 The addon should work with the latest version of IntelliJ IDEA. If it does not, please open an issue about it! I may have forgotten to update it.
 
 ***
+
 ### Thanks for reading this, and I wish you a happy bytecode inspection! 🎉
+
 ***

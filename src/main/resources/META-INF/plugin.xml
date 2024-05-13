@@ -87,14 +87,10 @@
 		</ul>
 	]]></change-notes>
 	
-	<application-components>
-	
-	</application-components>
-	
 	<depends>com.intellij.java</depends>
 	<depends>com.intellij.modules.platform</depends>
 	
-	<idea-version since-build="221.1" until-build="241.*"/>
+	<idea-version since-build="222.3345.118" until-build="241.*"/>
 	
 	<actions>
 		<action id="showBytecodeOutline" class="org.objectweb.asm.idea.ShowBytecodeOutlineAction"
