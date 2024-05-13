@@ -6,7 +6,6 @@ plugins {
 
 group 'asm.bytecode_outline.re'
 version '0.4.4'
-sourceCompatibility=17
 
 repositories {
 	mavenCentral()
@@ -24,7 +23,7 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:'+junit_jupiter_version
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:'+junit_jupiter_version
 
-	implementation group: 'org.ow2.asm', name: 'asm', version: '9.7'
+	implementation group: 'org.ow2.asm', name: 'asm', version: asm_version
 
 	priority "org.ow2.asm:asm:$asm_version"
 	priority "org.ow2.asm:asm-commons:$asm_version"
