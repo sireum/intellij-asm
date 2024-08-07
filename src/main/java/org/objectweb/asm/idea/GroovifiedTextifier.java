@@ -274,7 +274,7 @@ public class GroovifiedTextifier extends Textifier{
 		}
 		
 		@Override
-		public void visitMethodInsn(int opcode, String owner, String name, String desc){
+		public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean isInterface){
 			stringBuilder.setLength(0);
 			stringBuilder.append(tab2).append(OPCODES[opcode].toLowerCase()).append(' ');
 			if(isLegacy()){
