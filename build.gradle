@@ -1,11 +1,11 @@
 plugins {
-	id 'org.jetbrains.intellij' version '1.16.0'
-	id "com.github.johnrengelman.shadow" version "7.1.0"
+	id 'org.jetbrains.intellij' version '1.17.4'
+	id "com.github.johnrengelman.shadow" version "7.1.2"
 	id 'java'
 }
 
 group 'asm.bytecode_outline.re'
-version '0.4.5'
+version '0.4.6'
 
 repositories {
 	mavenCentral()
@@ -51,7 +51,7 @@ prepareSandbox.dependsOn(shadowJar)
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-	version = '2024.1'
+	version = '2024.2'
 	plugins = ['java']
 }
 test {
