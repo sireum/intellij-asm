@@ -12,5 +12,5 @@ You can use the plugin in 3 different ways:
 
 You can find the setting inside Settings => Tools => "ASM Bytecode Viewer"
 
-# Acknoledgements
+# Acknowledgement
 This plugin is forked from https://github.com/kamiiiel/asm-intellij-plugin

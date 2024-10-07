@@ -1,7 +1,7 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
-    id "org.jetbrains.intellij" version "1.16.1"
+    id "org.jetbrains.intellij" version "1.17.4"
 }
 
 group 'org.objectweb.asm.idea.action'
@@ -12,9 +12,11 @@ if(System.env.VERSION != null) {
     version 'dev'
 }
 
-var asm_version = '9.7'
+var asm_version = '9.7.1'
 
-sourceCompatibility='17'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
     mavenLocal()
@@ -65,52 +67,6 @@ patchPluginXml {
 
 publishPlugin {
     token = "${System.env.JETBRAINS_TOKEN}"
-}
-
-/**
- * Process the current versions of the IDEs and find the versions we want to verify.
- */
-def findVersion = () -> {
-    def parser = new groovy.json.JsonSlurper()
-    def json = parser.parseText(new URI("https://data.services.jetbrains.com/products?code=" + supportPlatforms.join('%2C')
-            + "&fields=code%2Cname%2Creleases.version%2Creleases.build%2Creleases.type").toURL().text)
-
-    def releases = []
-
-    json.each { item ->
-        def rels = [:]
-        item.releases.each { rel ->
-            if (rel.type == "release") {
-                def parts = rel.build.split("\\.")
-                def major = parts[0] as int
-
-                if (major >= ideaSince && major <= ideaUntil) {
-                    def existing = rels[major]
-                    if (existing == null) {
-                        rels[major] = rel
-                    } else {
-                        def extParts = existing.build.split("\\.")
-                        if (extParts[1] == parts[1]) {
-                            if (extParts[2] < parts[2]) {
-                                rels[major] = rel
-                            }
-                        } else if (extParts[1] < parts[1]) {
-                            rels[major] = rel
-                        }
-                    }
-                }
-            }
-        }
-        rels.values().each { rel ->
-            releases.add(item.code + "-" + rel.build)
-        }
-    }
-
-    releases
-}
-
-tasks.register('findVersion') {
-    new File(projectDir, "version.json").text = findVersion()
 }
 
 // https://github.com/JetBrains/gradle-intellij-plugin#plugin-verifier-dsl
