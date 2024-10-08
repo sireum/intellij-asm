@@ -1,14 +1,17 @@
 plugins {
-	id 'org.jetbrains.intellij' version '1.17.4'
-	id "com.github.johnrengelman.shadow" version "7.1.2"
+	id 'org.jetbrains.intellij.platform' version '2.1.0'
 	id 'java'
 }
 
 group 'asm.bytecode_outline.re'
-version '0.4.6'
+version '0.4.7'
 
 repositories {
 	mavenCentral()
+	
+	intellijPlatform {
+		defaultRepositories()
+	}
 }
 
 //setup a config so gradle prioritises our version of ASM
@@ -33,27 +36,20 @@ dependencies {
 	runtimeOnly "org.ow2.asm:asm:$asm_version"
 	runtimeOnly "org.ow2.asm:asm-commons:$asm_version"
 	runtimeOnly "org.ow2.asm:asm-util:$asm_version"
-}
-
-shadowJar {
-	configurations = [project.configurations.priority]
-	relocate('org.objectweb.asm', 'com.thiakil.shadowed.asm') {
-		exclude 'org.objectweb.asm.idea.**'
+	
+	intellijPlatform {
+		intellijIdeaCommunity "2024.2"
+		bundledPlugin "com.intellij.java"
+		
+		pluginVerifier()
+		instrumentationTools()
 	}
-	archiveClassifier.set('')
 }
 
-jar {
-	finalizedBy(tasks.shadowJar)
-}
-
-prepareSandbox.dependsOn(shadowJar)
-
-// See https://github.com/JetBrains/gradle-intellij-plugin/
-intellij {
-	version = '2024.2'
-	plugins = ['java']
-}
 test {
 	useJUnitPlatform()
+}
+
+java {
+	targetCompatibility = JavaVersion.VERSION_21
 }
