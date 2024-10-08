@@ -131,12 +131,6 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 			);
 		}
 		
-		
-		@Override
-		public boolean displayTextInToolbar(){
-			return true;
-		}
-		
 		@Override
 		public void actionPerformed(final @NotNull AnActionEvent e){
 			ShowSettingsUtil.getInstance().showSettingsDialog(project, ASMPluginConfigurable.class);
@@ -160,11 +154,6 @@ public class ACodeView extends SimpleToolWindowPanel implements Disposable{
 		@Override
 		public void update(final AnActionEvent e){
 			e.getPresentation().setEnabled(!"".equals(previousCode) && (previousFile != null));
-		}
-		
-		@Override
-		public boolean displayTextInToolbar(){
-			return true;
 		}
 		
 		@Override
