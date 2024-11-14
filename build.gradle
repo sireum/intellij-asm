@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'asm.bytecode_outline.re'
-version '0.4.7'
+version '0.4.8'
 
 repositories {
 	mavenCentral()
@@ -38,7 +38,7 @@ dependencies {
 	runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 	
 	intellijPlatform {
-		intellijIdeaCommunity "2024.2"
+		intellijIdeaCommunity "2024.3"
 		bundledPlugin "com.intellij.java"
 		
 		pluginVerifier()
