@@ -1,10 +1,10 @@
 plugins {
-	id 'org.jetbrains.intellij.platform' version '2.1.0'
+	id 'org.jetbrains.intellij.platform' version '2.5.0'
 	id 'java'
 }
 
-group 'asm.bytecode_outline.re'
-version '0.4.8'
+group 'org.sireum.intellij.asm'
+version '9.8'
 
 repositories {
 	mavenCentral()
@@ -23,9 +23,6 @@ configurations {
 
 dependencies {
 	
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:' + junit_jupiter_version
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + junit_jupiter_version
-	
 	implementation group: 'org.ow2.asm', name: 'asm', version: asm_version
 	
 	priority "org.ow2.asm:asm:$asm_version"
@@ -38,16 +35,12 @@ dependencies {
 	runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 	
 	intellijPlatform {
-		intellijIdeaCommunity "2024.3"
+		intellijIdeaCommunity "2024.3.5"
 		bundledPlugin "com.intellij.java"
 		
 		pluginVerifier()
 		instrumentationTools()
 	}
-}
-
-test {
-	useJUnitPlatform()
 }
 
 java {

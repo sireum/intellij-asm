@@ -1,14 +1,18 @@
 <idea-plugin url="https://github.com/thiakil/asm-bytecode-intellij">
-	<name>ASM Bytecode Outline Rebooted</name>
+	<name>ASM Bytecode Viewer</name>
 	<description>
 		Displays bytecode for Java classes and ASMified code which will help you in your class generation.
 		Updated for newer IDEA versions.
 	</description>
-	<version>0.4.8</version>
+	<version>9.8</version>
 	<vendor>LapisSea / thiakil / melix</vendor>
-	<id>asm.bytecode_outline.re</id>
+	<id>org.sireum.intellij.asm</id>
 	
 	<change-notes><![CDATA[
+		<b>Version 9.8</b>
+		<ul>
+			<li>Updated ASM to 9.8</li>
+		</ul>
 		<b>Version 0.4.8</b>
 		<ul>
 			<li>Enable 2024.3</li>
@@ -110,8 +114,8 @@
 	
 	<actions>
 		<action id="showBytecodeOutline" class="org.objectweb.asm.idea.ShowBytecodeOutlineAction"
-		        text="Show Bytecode Outline" icon="/images/asm.png"
-		        description="Shows the bytecode outline and ASMified code from the current class">
+		        text="ASM Bytecode Viewer" icon="/images/asm.svg"
+		        description="Shows the bytecode viewer and ASMified code from the current class">
 			<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 			<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
 			<add-to-group group-id="CodeMenu" anchor="last"/>
@@ -119,7 +123,7 @@
 	</actions>
 	
 	<extensions defaultExtensionNs="com.intellij">
-		<toolWindow id="ASM" anchor="right" icon="/images/asm.png"
+		<toolWindow id="ASM" anchor="right" icon="/images/asm.svg"
 		            factoryClass="org.objectweb.asm.idea.BytecodeOutlineToolWindowFactory"/>
 		<projectService serviceImplementation="org.objectweb.asm.idea.config.ASMPluginComponent"/>
 		<projectService serviceImplementation="org.objectweb.asm.idea.BytecodeOutline"/>
