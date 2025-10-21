@@ -1,10 +1,10 @@
 plugins {
-	id 'org.jetbrains.intellij.platform' version '2.5.0'
+	id 'org.jetbrains.intellij.platform' version '2.10.1'
 	id 'java'
 }
 
 group 'org.sireum.intellij.asm'
-version '9.8'
+version '9.9'
 
 repositories {
 	mavenCentral()
@@ -35,7 +35,7 @@ dependencies {
 	runtimeOnly "org.ow2.asm:asm-util:$asm_version"
 	
 	intellijPlatform {
-		intellijIdeaCommunity "2024.3.5"
+		intellijIdeaCommunity "2025.2.3"
 		bundledPlugin "com.intellij.java"
 		
 		pluginVerifier()
